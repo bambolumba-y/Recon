@@ -17,6 +17,8 @@ abstract interface class ProfileDataSource {
   Future<void> insert(ProfileEntriesCompanion entry);
   Future<void> edit(String id, ProfileEntriesCompanion entry);
   Future<void> deleteById(String id, bool isActive);
+  Stream<List<ProfileEntry>> watchAutoGroupMembers();
+  Future<void> setIncludeInAuto(String id, bool value);
 }
 
 Map<SortMode, OrderingMode> orderMap = {SortMode.ascending: OrderingMode.asc, SortMode.descending: OrderingMode.desc};
@@ -126,5 +128,20 @@ class ProfileDao extends DatabaseAccessor<Db> with _$ProfileDaoMixin, InfraLogge
         )..where((tbl) => tbl.id.equals(prof.id))).write(const ProfileEntriesCompanion(active: Value(true)));
       }
     });
+  }
+
+  @override
+  Stream<List<ProfileEntry>> watchAutoGroupMembers() {
+    return (profileEntries.select()
+          ..where((tbl) => tbl.includeInAuto.equals(true))
+          ..orderBy([(tbl) => OrderingTerm(expression: tbl.name, mode: OrderingMode.asc)]))
+        .watch();
+  }
+
+  @override
+  Future<void> setIncludeInAuto(String id, bool value) async {
+    await (update(
+      profileEntries,
+    )..where((tbl) => tbl.id.equals(id))).write(ProfileEntriesCompanion(includeInAuto: Value(value)));
   }
 }

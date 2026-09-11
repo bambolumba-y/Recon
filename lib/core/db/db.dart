@@ -14,7 +14,7 @@ class Db extends _$Db with InfraLogger {
   Db([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   static QueryExecutor _openConnection() {
     return LazyDatabase(
@@ -76,6 +76,9 @@ class Db extends _$Db with InfraLogger {
 
           await m.createTable(schema.appProxyEntries);
         },
+        from5To6: (m, schema) async {
+          await m.addColumn(schema.profileEntries, schema.profileEntries.includeInAuto);
+        },
       ),
     );
   }
@@ -104,6 +107,7 @@ class ProfileEntries extends Table {
   TextColumn get populatedHeaders => text().nullable()();
   TextColumn get profileOverride => text().nullable()();
   TextColumn get userOverride => text().nullable()();
+  BoolColumn get includeInAuto => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
