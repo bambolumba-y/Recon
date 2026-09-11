@@ -68,6 +68,7 @@ class AutoGroupMerger {
     final seenCanonical = <String, String>{}; // canonical json -> merged tag
     final usedPrefixes = <String>{};
     final usedTags = <String>{}; // every merged tag already emitted
+    final droppedToSurvivor = <String, String>{}; // deduped merged tag -> the tag that stayed
 
     for (final src in sources) {
       final prefix = _uniquePrefix(prefixFor(src.profileName), usedPrefixes);
@@ -109,6 +110,9 @@ class AutoGroupMerger {
           final canonical = _canonical(merged);
           final duplicateOf = seenCanonical[canonical];
           if (duplicateOf != null) {
+            // The tag disappears from the config, so remember what took its place: another
+            // outbound of this profile may still point a detour at it.
+            droppedToSurvivor[merged['tag'] as String] = duplicateOf;
             warnings.add('duplicate server "${merged['tag']}" skipped (same as "$duplicateOf")');
             continue;
           }
@@ -143,11 +147,52 @@ class AutoGroupMerger {
       add(rawEndpoints, endpoints);
     }
 
+    _repairDetours(
+      items: [...outbounds, ...endpoints],
+      existingTags: usedTags,
+      droppedToSurvivor: droppedToSurvivor,
+      origins: origins,
+      warnings: warnings,
+    );
+
     return AutoGroupMergeResult(
       config: {'outbounds': outbounds, 'endpoints': endpoints},
       origins: origins,
       warnings: warnings,
     );
+  }
+
+  /// Last pass over the flat list: a `detour` may still name a tag that dedup removed after the
+  /// reference was rewritten. The removed outbound was byte-identical to the one that stayed, so
+  /// the reference is redirected there rather than dropped.
+  static void _repairDetours({
+    required List<Map<String, dynamic>> items,
+    required Set<String> existingTags,
+    required Map<String, String> droppedToSurvivor,
+    required Map<String, AutoGroupTagOrigin> origins,
+    required List<String> warnings,
+  }) {
+    for (final item in items) {
+      final detour = item['detour'];
+      if (detour is! String || existingTags.contains(detour)) continue;
+      final origin = origins[item['tag']];
+      final profileName = origin?.profileName ?? '';
+      final outboundTag = origin?.originalTag ?? item['tag'];
+      final survivor = droppedToSurvivor[detour];
+      if (survivor != null) {
+        item['detour'] = survivor;
+        warnings.add(
+          '"$profileName": detour of "$outboundTag" pointed at deduplicated "$detour", '
+          'redirected to "$survivor"',
+        );
+      } else {
+        item.remove('detour');
+        warnings.add(
+          '"$profileName": outbound "$outboundTag" pointed at missing detour "$detour", '
+          'the reference was dropped',
+        );
+      }
+    }
   }
 
   static String _uniquePrefix(String base, Set<String> used) {

@@ -61,6 +61,20 @@ void main() {
       expect(result.warnings.single, contains('select'));
     });
 
+    test('redirects a detour whose target was removed by deduplication', () {
+      final result = AutoGroupMerger.merge([
+        source('p1', 'Alpha', [vless('X', 'x.example.com'), vless('Y', 'y.example.com', detour: 'X')]),
+        source('p2', 'Beta', [vless('X', 'x.example.com'), vless('Z', 'z.example.com', detour: 'X')]),
+      ]);
+      final outbounds = (result.config['outbounds'] as List).cast<Map>();
+      final tags = outbounds.map((e) => e['tag']).toList();
+      expect(tags, ['Alpha · X', 'Alpha · Y', 'Beta · Z']);
+      expect(result.origins.containsKey('Beta · X'), isFalse);
+      final z = outbounds.firstWhere((e) => e['tag'] == 'Beta · Z');
+      expect(z['detour'], 'Alpha · X');
+      expect(result.warnings.where((w) => w.contains('redirected to "Alpha · X"')), hasLength(1));
+    });
+
     test('disambiguates two servers that share a tag inside one profile', () {
       final result = AutoGroupMerger.merge([
         source('p1', 'Alpha', [vless('NL-1', 'a.example.com'), vless('NL-1', 'b.example.com')]),
