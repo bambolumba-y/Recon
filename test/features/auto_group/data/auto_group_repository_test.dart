@@ -105,5 +105,52 @@ void main() {
     final failure = result.getLeft().toNullable();
     expect(failure, isA<AutoGroupInvalidConfig>());
     expect((failure! as AutoGroupInvalidConfig).detail, 'bad config');
+    expect(resolver.tempFile(AutoGroupRepository.configId).existsSync(), isFalse);
+  });
+
+  test('cleans up the temp file when the core rejects the written config', () async {
+    writeProfile('a', [vless('NL', 'a.example.com')]);
+    var tempSeenByValidator = false;
+    final result = await repo(
+      [profile('a', 'Alpha')],
+      validate: (path, tempPath) async {
+        tempSeenByValidator = File(tempPath).existsSync();
+        return left('bad config');
+      },
+    ).buildConfig().run();
+
+    expect(tempSeenByValidator, isTrue);
+    expect(result.getLeft().toNullable(), isA<AutoGroupInvalidConfig>());
+    expect(resolver.tempFile(AutoGroupRepository.configId).existsSync(), isFalse);
+  });
+
+  test('serializes overlapping builds', () async {
+    writeProfile('a', [vless('NL', 'a.example.com')]);
+    writeProfile('b', [vless('DE', 'b.example.com')]);
+    var running = 0;
+    var maxConcurrent = 0;
+    final r = repo(
+      [profile('a', 'Alpha'), profile('b', 'Beta')],
+      validate: (path, tempPath) async {
+        running++;
+        maxConcurrent = maxConcurrent > running ? maxConcurrent : running;
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        File(path).writeAsStringSync(File(tempPath).readAsStringSync());
+        running--;
+        return right(unit);
+      },
+    );
+
+    final first = r.buildConfig().run();
+    final second = r.buildConfig().run();
+    final results = await Future.wait([first, second]);
+
+    expect(maxConcurrent, 1);
+    final builds = results.map((e) => e.getOrElse((l) => fail(l.message))).toList();
+    expect(builds.every((b) => b.serverCount == 2), isTrue);
+    expect(r.lastBuild, same(builds.last));
+    final written = jsonDecode(File(builds.last.configPath).readAsStringSync()) as Map;
+    expect((written['outbounds'] as List).length, 2);
+    expect(resolver.tempFile(AutoGroupRepository.configId).existsSync(), isFalse);
   });
 }

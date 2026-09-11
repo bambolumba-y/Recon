@@ -59,6 +59,10 @@ class AutoGroupRepositoryImpl with InfraLogger implements AutoGroupRepository {
 
   AutoGroupBuild? _lastBuild;
 
+  /// Builds share one temp path, so they run one after another: a rebuild triggered by a profile
+  /// update must not write the temp file while another build is validating it.
+  Future<void> _queue = Future<void>.value();
+
   @override
   AutoGroupBuild? get lastBuild => _lastBuild;
 
@@ -72,7 +76,17 @@ class AutoGroupRepositoryImpl with InfraLogger implements AutoGroupRepository {
   }, ProfileUnexpectedFailure.new);
 
   @override
-  TaskEither<AutoGroupFailure, AutoGroupBuild> buildConfig() => TaskEither(() async {
+  TaskEither<AutoGroupFailure, AutoGroupBuild> buildConfig() => TaskEither(_enqueueBuild);
+
+  Future<Either<AutoGroupFailure, AutoGroupBuild>> _enqueueBuild() {
+    final result = _queue.then((_) => _build());
+    // The queue must survive a failed build, and _build reads its members only once it starts,
+    // so a queued call still sees the state left by the one before it.
+    _queue = result.then((_) {}, onError: (Object _) {});
+    return result;
+  }
+
+  Future<Either<AutoGroupFailure, AutoGroupBuild>> _build() async {
     try {
       final members = (await _watchMembers().first).getOrElse((l) => throw l);
       if (members.isEmpty) return left(const AutoGroupNoMembers());
@@ -102,14 +116,20 @@ class AutoGroupRepositoryImpl with InfraLogger implements AutoGroupRepository {
 
       final target = _resolver.file(AutoGroupRepository.configId);
       final temp = _resolver.tempFile(AutoGroupRepository.configId);
-      await temp.writeAsString(jsonEncode(merged.config));
       try {
+        await temp.writeAsString(jsonEncode(merged.config));
         final validation = await _validate(target.path, temp.path);
         if (validation.isLeft()) {
           return left(AutoGroupInvalidConfig(validation.getLeft().toNullable() ?? 'unknown'));
         }
       } finally {
-        if (temp.existsSync()) temp.deleteSync();
+        // A throw here would replace the result of the try block, so a temp file the core still
+        // holds open must not turn a finished build into a failure.
+        try {
+          if (temp.existsSync()) temp.deleteSync();
+        } catch (e, st) {
+          loggy.warning('failed to delete temp config ${temp.path}', e, st);
+        }
       }
 
       final metaFile = File(p.join(_resolver.directory.path, AutoGroupRepository.metaFileName));
@@ -137,5 +157,5 @@ class AutoGroupRepositoryImpl with InfraLogger implements AutoGroupRepository {
       loggy.error('auto group build failed', e, st);
       return left(AutoGroupUnexpected(e, st));
     }
-  });
+  }
 }
