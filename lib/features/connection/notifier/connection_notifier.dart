@@ -4,6 +4,8 @@ import 'package:hiddify/core/haptic/haptic_service.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/preferences/general_preferences.dart';
 import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
+import 'package:hiddify/features/auto_group/data/auto_group_data_providers.dart';
+import 'package:hiddify/features/auto_group/notifier/auto_group_notifier.dart';
 import 'package:hiddify/features/connection/data/connection_data_providers.dart';
 import 'package:hiddify/features/connection/data/connection_repository.dart';
 import 'package:hiddify/features/connection/model/connection_failure.dart';
@@ -48,11 +50,29 @@ class ConnectionNotifier extends _$ConnectionNotifier with AppLogger {
 
     ref.listen(activeProfileProvider.select((value) => value.asData?.value), (previous, next) async {
       if (previous == null) return;
+      if (ref.read(Preferences.autoGroupEnabled)) return; // auto mode ignores the active profile
       final shouldReconnect = next == null || previous.id != next.id;
       if (shouldReconnect) {
         await reconnect(next);
       }
     });
+
+    ref.listen(Preferences.autoGroupEnabled, (previous, next) async {
+      if (previous == null || previous == next) return;
+      await _reconnectForCurrentMode();
+    });
+
+    // membership set or a member's content changed -> rebuild the merged config while connected in auto mode
+    ref.listen(
+      autoGroupMembersProvider.select(
+        (value) => value.asData?.value.map((p) => '${p.id}:${p.lastUpdate.millisecondsSinceEpoch}').join(','),
+      ),
+      (previous, next) async {
+        if (previous == null || previous == next) return;
+        if (!ref.read(Preferences.autoGroupEnabled)) return;
+        await _reconnectForCurrentMode();
+      },
+    );
     ref.watch(coreRestartSignalProvider);
 
     yield* _connectionRepo.watchConnectionStatus().doOnData((event) {
@@ -136,26 +156,61 @@ class ConnectionNotifier extends _$ConnectionNotifier with AppLogger {
   }
 
   Future<void> _connectThrottled() async {
+    if (ref.read(Preferences.autoGroupEnabled)) {
+      await _connectionRepo.connectAutoGroup(ref.read(Preferences.disableMemoryLimit)).mapLeft(_onConnectError).run();
+      _publishAutoGroupBuild();
+      return;
+    }
     final activeProfile = await ref.read(activeProfileProvider.future);
     if (activeProfile == null) {
       loggy.info("no active profile, not connecting");
       return;
     }
-    await _connectionRepo.connect(activeProfile, ref.read(Preferences.disableMemoryLimit)).mapLeft((
-      ConnectionFailure err,
-    ) async {
-      loggy.warning("error connecting", err);
-      //Go err is not normal object to see the go errors are string and need to be dumped
-      await ref
-          .read(dialogNotifierProvider.notifier)
-          .showCustomAlertFromErr(err.present(ref.read(translationsProvider).requireValue));
-      loggy.warning(err);
-      if (err.toString().contains("panic")) {
-        await Sentry.captureException(Exception(err.toString()));
+    await _connectionRepo
+        .connect(activeProfile, ref.read(Preferences.disableMemoryLimit))
+        .mapLeft(_onConnectError)
+        .run();
+  }
+
+  Future<void> _onConnectError(ConnectionFailure err) async {
+    loggy.warning("error connecting", err);
+    //Go err is not normal object to see the go errors are string and need to be dumped
+    await ref
+        .read(dialogNotifierProvider.notifier)
+        .showCustomAlertFromErr(err.present(ref.read(translationsProvider).requireValue));
+    if (err.toString().contains("panic")) {
+      await Sentry.captureException(Exception(err.toString()));
+    }
+    await ref.read(Preferences.startedByUser.notifier).update(false);
+    state = AsyncError(err, StackTrace.current);
+  }
+
+  Future<void> _reconnectForCurrentMode() async {
+    if (state case AsyncData(:final value) when value == const Connected()) {
+      if (ref.read(Preferences.autoGroupEnabled)) {
+        loggy.info("auto group changed, reconnecting");
+        await _connectionRepo
+            .reconnectAutoGroup(ref.read(Preferences.disableMemoryLimit))
+            .mapLeft(_onReconnectError)
+            .run();
+        _publishAutoGroupBuild();
+      } else {
+        await reconnect(await ref.read(activeProfileProvider.future));
       }
-      await ref.read(Preferences.startedByUser.notifier).update(false);
-      state = AsyncError(err, StackTrace.current);
-    }).run();
+    }
+  }
+
+  Future<void> _onReconnectError(ConnectionFailure err) async {
+    loggy.warning("error reconnecting", err);
+    state = AsyncError(err, StackTrace.current);
+    await ref
+        .read(dialogNotifierProvider.notifier)
+        .showCustomAlertFromErr(err.present(ref.read(translationsProvider).requireValue));
+  }
+
+  void _publishAutoGroupBuild() {
+    final build = ref.read(autoGroupRepositoryProvider).lastBuild;
+    if (build != null) ref.read(autoGroupNotifierProvider.notifier).recordBuild(build);
   }
 
   Future<void> _disconnect() async {

@@ -2,6 +2,8 @@ import 'package:fpdart/fpdart.dart';
 import 'package:hiddify/core/model/directories.dart';
 import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
 import 'package:hiddify/core/utils/exception_handler.dart';
+import 'package:hiddify/features/auto_group/data/auto_group_repository.dart';
+import 'package:hiddify/features/auto_group/model/auto_group_failure.dart';
 import 'package:hiddify/features/connection/model/connection_failure.dart';
 import 'package:hiddify/features/connection/model/connection_status.dart';
 import 'package:hiddify/features/profile/data/profile_path_resolver.dart';
@@ -23,6 +25,8 @@ abstract interface class ConnectionRepository {
   TaskEither<ConnectionFailure, Unit> connect(ProfileEntity activeProfile, bool disableMemoryLimit);
   TaskEither<ConnectionFailure, Unit> disconnect();
   TaskEither<ConnectionFailure, Unit> reconnect(ProfileEntity activeProfile, bool disableMemoryLimit);
+  TaskEither<ConnectionFailure, Unit> connectAutoGroup(bool disableMemoryLimit);
+  TaskEither<ConnectionFailure, Unit> reconnectAutoGroup(bool disableMemoryLimit);
 }
 
 class ConnectionRepositoryImpl with ExceptionHandler, InfraLogger implements ConnectionRepository {
@@ -32,6 +36,7 @@ class ConnectionRepositoryImpl with ExceptionHandler, InfraLogger implements Con
     required this.singbox,
     required this.configOptionRepository,
     required this.profilePathResolver,
+    required this.autoGroupRepository,
   });
 
   final Ref ref;
@@ -41,6 +46,7 @@ class ConnectionRepositoryImpl with ExceptionHandler, InfraLogger implements Con
 
   final ConfigOptionRepository configOptionRepository;
   final ProfilePathResolver profilePathResolver;
+  final AutoGroupRepository autoGroupRepository;
 
   SingboxConfigOption? _configOptionsSnapshot;
   @override
@@ -79,7 +85,7 @@ class ConnectionRepositoryImpl with ExceptionHandler, InfraLogger implements Con
 
   @override
   TaskEither<ConnectionFailure, Unit> connect(ProfileEntity activeProfile, bool disableMemoryLimit) => setup().flatMap(
-    (_) => applyConfigOption(activeProfile).flatMap(
+    (_) => applyConfigOption(activeProfile.profileOverride).flatMap(
       (_) => singbox.start(profilePathResolver.file(activeProfile.id).path, activeProfile.name, disableMemoryLimit),
       // .mapLeft(UnexpectedConnectionFailure.new),
     ),
@@ -90,15 +96,40 @@ class ConnectionRepositoryImpl with ExceptionHandler, InfraLogger implements Con
 
   @override
   TaskEither<ConnectionFailure, Unit> reconnect(ProfileEntity activeProfile, bool disableMemoryLimit) =>
-      applyConfigOption(activeProfile).flatMap(
+      applyConfigOption(activeProfile.profileOverride).flatMap(
         (_) => singbox
             .restart(profilePathResolver.file(activeProfile.id).path, activeProfile.name, disableMemoryLimit)
             .mapLeft(UnexpectedConnectionFailure.new),
       );
 
+  @override
+  TaskEither<ConnectionFailure, Unit> connectAutoGroup(bool disableMemoryLimit) => setup().flatMap(
+    (_) => applyConfigOption(null).flatMap(
+      (_) => _buildAutoGroup().flatMap(
+        (build) => singbox.start(build.configPath, AutoGroupRepository.displayName, disableMemoryLimit),
+      ),
+    ),
+  );
+
+  @override
+  TaskEither<ConnectionFailure, Unit> reconnectAutoGroup(bool disableMemoryLimit) => applyConfigOption(null).flatMap(
+    (_) => _buildAutoGroup().flatMap(
+      (build) => singbox
+          .restart(build.configPath, AutoGroupRepository.displayName, disableMemoryLimit)
+          .mapLeft(UnexpectedConnectionFailure.new),
+    ),
+  );
+
+  TaskEither<ConnectionFailure, AutoGroupBuild> _buildAutoGroup() => autoGroupRepository.buildConfig().mapLeft(
+    (failure) => switch (failure) {
+      AutoGroupInvalidConfig(:final detail) => ConnectionFailure.invalidConfig(detail),
+      _ => ConnectionFailure.unexpected(failure.message),
+    },
+  );
+
   @visibleForTesting
-  TaskEither<ConnectionFailure, Unit> applyConfigOption(ProfileEntity prof) =>
-      TaskEither.fromEither(configOptionRepository.fullOptionsOverrided(prof.profileOverride))
+  TaskEither<ConnectionFailure, Unit> applyConfigOption(String? profileOverride) =>
+      TaskEither.fromEither(configOptionRepository.fullOptionsOverrided(profileOverride))
           .mapLeft((l) => ConnectionFailure.invalidConfigOption(null, l))
           .flatMap(
             (overridedOptions) => TaskEither.tryCatch(() async {
