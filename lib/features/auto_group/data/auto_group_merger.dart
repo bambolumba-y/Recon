@@ -46,7 +46,18 @@ class AutoGroupMerger {
     final collapsed = profileName.trim().replaceAll(RegExp(r'\s+'), ' ');
     if (collapsed.isEmpty) return fallbackPrefix;
     if (collapsed.length <= prefixMaxLength) return collapsed;
-    return collapsed.substring(0, prefixMaxLength).trimRight();
+    // Cut on code point boundaries so an emoji at the limit is kept whole or left out
+    // entirely. Cutting on code units would leave a lone surrogate in every tag.
+    final buffer = StringBuffer();
+    var length = 0;
+    for (final rune in collapsed.runes) {
+      final char = String.fromCharCode(rune);
+      if (length + char.length > prefixMaxLength) break;
+      buffer.write(char);
+      length += char.length;
+    }
+    final truncated = buffer.toString().trimRight();
+    return truncated.isEmpty ? fallbackPrefix : truncated;
   }
 
   static AutoGroupMergeResult merge(List<AutoGroupSource> sources) {
@@ -56,6 +67,7 @@ class AutoGroupMerger {
     final warnings = <String>[];
     final seenCanonical = <String, String>{}; // canonical json -> merged tag
     final usedPrefixes = <String>{};
+    final usedTags = <String>{}; // every merged tag already emitted
 
     for (final src in sources) {
       final prefix = _uniquePrefix(prefixFor(src.profileName), usedPrefixes);
@@ -66,7 +78,8 @@ class AutoGroupMerger {
         continue;
       }
 
-      // first pass: tag map for detour rewriting within this profile
+      // first pass: tag map for detour rewriting within this profile. A tag used twice maps to
+      // the first occurrence, so a detour pointing at it resolves to that first server.
       final tagMap = <String, String>{};
       for (final item in [...rawOutbounds, ...rawEndpoints]) {
         final tag = item['tag'] as String;
@@ -77,8 +90,21 @@ class AutoGroupMerger {
         for (final item in raw) {
           final originalTag = item['tag'] as String;
           final merged = Map<String, dynamic>.from(item)..['tag'] = tagMap[originalTag];
-          if (merged['detour'] is String && tagMap.containsKey(merged['detour'])) {
-            merged['detour'] = tagMap[merged['detour']];
+          final detour = merged['detour'];
+          if (detour is String) {
+            final rewritten = tagMap[detour];
+            if (rewritten != null) {
+              merged['detour'] = rewritten;
+            } else {
+              // The target was dropped as a group or an infrastructure outbound, or it never
+              // existed. Keeping it would make the core reject the config or bind the outbound
+              // to a server of another subscription.
+              merged.remove('detour');
+              warnings.add(
+                '"${src.profileName}": outbound "$originalTag" pointed at missing detour "$detour", '
+                'the reference was dropped',
+              );
+            }
           }
           final canonical = _canonical(merged);
           final duplicateOf = seenCanonical[canonical];
@@ -86,8 +112,25 @@ class AutoGroupMerger {
             warnings.add('duplicate server "${merged['tag']}" skipped (same as "$duplicateOf")');
             continue;
           }
-          seenCanonical[canonical] = merged['tag'] as String;
-          origins[merged['tag'] as String] = AutoGroupTagOrigin(
+          // Two leaf outbounds of one profile may share a tag. sing-box refuses a config with
+          // repeated tags, so the later ones get a numeric suffix.
+          var mergedTag = merged['tag'] as String;
+          if (usedTags.contains(mergedTag)) {
+            final base = mergedTag;
+            var n = 2;
+            while (usedTags.contains(mergedTag)) {
+              mergedTag = '$base $n';
+              n++;
+            }
+            merged['tag'] = mergedTag;
+            warnings.add(
+              '"${src.profileName}" has more than one server tagged "$originalTag", '
+              'the copy was renamed to "$mergedTag"',
+            );
+          }
+          usedTags.add(mergedTag);
+          seenCanonical[canonical] = mergedTag;
+          origins[mergedTag] = AutoGroupTagOrigin(
             profileId: src.profileId,
             profileName: src.profileName,
             originalTag: originalTag,
