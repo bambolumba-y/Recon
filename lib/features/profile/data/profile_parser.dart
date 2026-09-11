@@ -5,6 +5,7 @@ import 'package:dartx/dartx.dart';
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hiddify/core/db/db.dart';
+import 'package:hiddify/core/device_identity/device_identity_provider.dart';
 import 'package:hiddify/core/http_client/dio_http_client.dart';
 import 'package:hiddify/features/profile/data/profile_data_mapper.dart';
 import 'package:hiddify/features/profile/model/profile_entity.dart';
@@ -149,6 +150,7 @@ class ProfileParser {
     // if (url.startsWith("http://"))
     //   throw const ProfileFailure.invalidUrl('HTTP is not supported. Please use HTTPS for secure connection.');
 
+    final deviceHeaders = _ref.read(deviceIdentityProvider).toSubscriptionHeaders();
     final rs = await _httpClient
         .download(
           url.trim(),
@@ -157,6 +159,7 @@ class ProfileParser {
           userAgent: _ref.read(ConfigOptions.useXrayCoreWhenPossible)
               ? _httpClient.userAgent.replaceAll("HiddifyNext", "HiddifyNextX")
               : null,
+          headers: deviceHeaders,
         )
         .catchError((err) {
           if (CancelToken.isCancel(err as DioException)) {
@@ -215,6 +218,7 @@ class ProfileParser {
             userAgent: ref.read(ConfigOptions.useXrayCoreWhenPossible)
                 ? httpClient.userAgent.replaceAll('HiddifyNext', 'HiddifyNextX')
                 : null,
+            headers: ref.read(deviceIdentityProvider).toSubscriptionHeaders(),
           );
 
           results[currentIndex] = (await File(tmpPath).readAsString()).trim();

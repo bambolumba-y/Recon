@@ -89,6 +89,7 @@ class DioHttpClient with InfraLogger {
     String? userAgent,
     ({String username, String password})? credentials,
     bool proxyOnly = false,
+    Map<String, String>? headers,
   }) async {
     final mode = proxyOnly
         ? "proxy"
@@ -100,7 +101,7 @@ class DioHttpClient with InfraLogger {
     return dio.get<T>(
       url,
       cancelToken: cancelToken,
-      options: _options(url, userAgent: userAgent, credentials: credentials),
+      options: _options(url, userAgent: userAgent, credentials: credentials, headers: headers),
     );
   }
 
@@ -111,6 +112,7 @@ class DioHttpClient with InfraLogger {
     String? userAgent,
     ({String username, String password})? credentials,
     bool proxyOnly = false,
+    Map<String, String>? headers,
   }) async {
     final mode = proxyOnly
         ? "proxy"
@@ -122,11 +124,16 @@ class DioHttpClient with InfraLogger {
       url,
       path,
       cancelToken: cancelToken,
-      options: _options(url, userAgent: userAgent, credentials: credentials),
+      options: _options(url, userAgent: userAgent, credentials: credentials, headers: headers),
     );
   }
 
-  Options _options(String url, {String? userAgent, ({String username, String password})? credentials}) {
+  Options _options(
+    String url, {
+    String? userAgent,
+    ({String username, String password})? credentials,
+    Map<String, String>? headers,
+  }) {
     final uri = Uri.parse(url);
 
     String? userInfo;
@@ -145,6 +152,7 @@ class DioHttpClient with InfraLogger {
       headers: {
         if (userAgent != null) "User-Agent": userAgent,
         if (basicAuth != null) "authorization": basicAuth,
+        ...?headers,
         // "Accept": "application/json",
         // "Content-Type": "application/json",
       },
