@@ -24,6 +24,7 @@ sealed class ProfileEntity with _$ProfileEntity {
     Map<String, dynamic>? populatedHeaders,
     String? profileOverride,
     UserOverride? userOverride,
+    @Default(false) bool includeInAuto,
   }) = RemoteProfileEntity;
 
   const factory ProfileEntity.local({
@@ -34,6 +35,7 @@ sealed class ProfileEntity with _$ProfileEntity {
     Map<String, dynamic>? populatedHeaders,
     String? profileOverride,
     UserOverride? userOverride,
+    @Default(false) bool includeInAuto,
   }) = LocalProfileEntity;
 }
 

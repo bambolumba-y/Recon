@@ -34,6 +34,8 @@ abstract interface class ProfileRepository {
   TaskEither<ProfileFailure, Unit> validateConfig(String path, String tempPath, String? profileOverride, bool debug);
   TaskEither<ProfileFailure, String> generateConfig(String id);
   TaskEither<ProfileFailure, String> getRawConfig(String id);
+  Stream<Either<ProfileFailure, List<ProfileEntity>>> watchAutoGroupMembers();
+  TaskEither<ProfileFailure, Unit> setIncludeInAuto(String id, bool value);
 }
 
 class ProfileRepositoryImpl with ExceptionHandler, InfraLogger implements ProfileRepository {
@@ -260,5 +262,21 @@ class ProfileRepositoryImpl with ExceptionHandler, InfraLogger implements Profil
     return TaskEither.fromEither(
       Either.tryCatch(() => _profilePathResolver.file(id), ProfileFailure.unexpected),
     ).flatMap((configFile) => TaskEither.tryCatch(() => configFile.readAsString(), ProfileFailure.unexpected));
+  }
+
+  @override
+  Stream<Either<ProfileFailure, List<ProfileEntity>>> watchAutoGroupMembers() {
+    return _profileDataSource
+        .watchAutoGroupMembers()
+        .map((event) => event.map((e) => e.toEntity()).toList())
+        .handleExceptions(ProfileUnexpectedFailure.new);
+  }
+
+  @override
+  TaskEither<ProfileFailure, Unit> setIncludeInAuto(String id, bool value) {
+    return TaskEither.tryCatch(() async {
+      await _profileDataSource.setIncludeInAuto(id, value);
+      return unit;
+    }, ProfileUnexpectedFailure.new);
   }
 }

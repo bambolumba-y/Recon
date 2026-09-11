@@ -23,6 +23,7 @@ extension ProfileEntityMapper on ProfileEntity {
       expire: Value(rp.subInfo?.expire),
       webPageUrl: Value(rp.subInfo?.webPageUrl),
       supportUrl: Value(rp.subInfo?.supportUrl),
+      includeInAuto: Value(rp.includeInAuto),
     ),
     local: (lp) => ProfileEntriesCompanion.insert(
       id: lp.id,
@@ -33,6 +34,7 @@ extension ProfileEntityMapper on ProfileEntity {
       populatedHeaders: Value(jsonEncode(lp.populatedHeaders)),
       profileOverride: Value(lp.profileOverride),
       userOverride: Value(lp.userOverride?.toStr()),
+      includeInAuto: Value(lp.includeInAuto),
     ),
   );
 
@@ -98,6 +100,7 @@ extension ProfileEntryMapper on ProfileEntry {
         populatedHeaders: mPopulatedHeaders,
         profileOverride: profileOverride,
         userOverride: UserOverride.fromStr(userOverride),
+        includeInAuto: includeInAuto,
       ),
       ProfileType.local => LocalProfileEntity(
         id: id,
@@ -107,6 +110,7 @@ extension ProfileEntryMapper on ProfileEntry {
         populatedHeaders: mPopulatedHeaders,
         profileOverride: profileOverride,
         userOverride: UserOverride.fromStr(userOverride),
+        includeInAuto: includeInAuto,
       ),
     };
   }
