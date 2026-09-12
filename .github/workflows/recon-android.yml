@@ -49,8 +49,40 @@ jobs:
       - name: Test
         run: flutter test
 
+      - name: Prepare signing
+        env:
+          KEYSTORE_B64: ${{ secrets.RECON_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.RECON_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.RECON_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RECON_KEY_ALIAS }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "RECON_KEYSTORE_BASE64 is empty, refusing to fall back to a debug-signed build" >&2
+            exit 1
+          fi
+          # storeFile is read by android/app/build.gradle, which resolves a
+          # bare filename against the app module directory (android/app).
+          echo "$KEYSTORE_B64" | base64 -d > android/app/recon-release.jks
+          {
+            echo "storeFile=recon-release.jks"
+            echo "storePassword=$STORE_PASSWORD"
+            echo "keyPassword=$KEY_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+          } > android/key.properties
+
       - name: Build APK
         run: flutter build apk --release --split-per-abi
+
+      - name: Verify signature
+        run: |
+          BUILD_TOOLS_VERSION=$(ls "$ANDROID_HOME/build-tools" | tail -1)
+          APKSIGNER="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner"
+          CERT_INFO=$("$APKSIGNER" verify --print-certs build/app/outputs/flutter-apk/app-arm64-v8a-release.apk)
+          if echo "$CERT_INFO" | grep -qi 'CN=Android Debug'; then
+            echo "APK is signed with the debug certificate, expected the release key (CN=Recon)" >&2
+            exit 1
+          fi
+          echo "$CERT_INFO" | grep -i 'SHA-256'
 
       - uses: actions/upload-artifact@v4
         with:
