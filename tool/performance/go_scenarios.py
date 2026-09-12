@@ -101,6 +101,11 @@ def main():
         parser.error(f"sing-box workspace not found: {singbox}")
     core = singbox.parent
 
+    go_version = run(["go", "version"], cwd=APP)
+    singbox_commit = run(["git", "rev-parse", "HEAD"], cwd=singbox)
+    core_commit = run(["git", "rev-parse", "HEAD"], cwd=core)
+    timestamp_utc = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
     date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     output = (args.out or APP / "docs/performance" / f"{date}-go-scenarios").resolve()
     try:
@@ -108,11 +113,6 @@ def main():
     except FileExistsError:
         print(f"Refusing to overwrite existing results directory: {output}", file=sys.stderr)
         sys.exit(1)
-
-    go_version = run(["go", "version"], cwd=APP)
-    singbox_commit = run(["git", "rev-parse", "HEAD"], cwd=singbox)
-    core_commit = run(["git", "rev-parse", "HEAD"], cwd=core)
-    timestamp_utc = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
     result = subprocess.run(["go"] + GO_TEST_ARGS, cwd=singbox, capture_output=True,
                             encoding="utf-8", errors="replace", shell=False)

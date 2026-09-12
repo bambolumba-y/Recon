@@ -132,13 +132,34 @@ class ConnectionRepositoryImpl with ExceptionHandler, InfraLogger implements Con
   );
 
   /// Auto mode must run on the core's lowest-delay balancer, not on the selector's default (`balance`).
-  /// A selection failure must not fail the composed connect: `start`/`restart` already succeeded and
-  /// the tunnel is up (on the selector's default outbound), so failing here would show a spurious
-  /// connect error and disable the boot auto-restart. Log and complete with success instead.
-  TaskEither<ConnectionFailure, Unit> _selectLowest() =>
-      singbox.selectOutbound('select', 'lowest').mapLeft(ConnectionFailure.unexpected).orElse((failure) {
-        loggy.warning('failed to select lowest-delay balancer after auto connect', failure);
-        return TaskEither.of(unit);
+  /// `HiddifyCoreService.selectOutbound` rethrows any `GrpcError` from the core (the 1 s call deadline
+  /// during a core restart, `UNAVAILABLE` while the core is restarting, "outbound not found in
+  /// selector" for a single-server group) instead of always returning a `Left`, so each attempt is
+  /// wrapped in `TaskEither.tryCatch` to catch both outcomes and retried up to
+  /// [_selectLowestMaxAttempts] times, [selectLowestRetryDelay] apart. A selection failure must not
+  /// fail the composed connect: `start`/`restart` already succeeded and the tunnel is up (on the
+  /// selector's default outbound), so failing here would show a spurious connect error and disable
+  /// the boot auto-restart. Log a warning after the last attempt and complete with success instead.
+  static const _selectLowestMaxAttempts = 3;
+
+  @visibleForTesting
+  static Duration selectLowestRetryDelay = const Duration(seconds: 1);
+
+  TaskEither<ConnectionFailure, Unit> _selectLowest() => _selectLowestAttempt(1);
+
+  TaskEither<ConnectionFailure, Unit> _selectLowestAttempt(int attempt) =>
+      TaskEither<ConnectionFailure, Either<String, Unit>>.tryCatch(
+        () => singbox.selectOutbound('select', 'lowest').run(),
+        (error, stackTrace) => ConnectionFailure.unexpected(error, stackTrace),
+      ).flatMap((either) => TaskEither.fromEither(either).mapLeft(ConnectionFailure.unexpected)).orElse((failure) {
+        if (attempt >= _selectLowestMaxAttempts) {
+          loggy.warning('failed to select lowest-delay balancer after auto connect', failure);
+          return TaskEither.of(unit);
+        }
+        return TaskEither(() async {
+          await Future<void>.delayed(selectLowestRetryDelay);
+          return _selectLowestAttempt(attempt + 1).run();
+        });
       });
 
   @visibleForTesting

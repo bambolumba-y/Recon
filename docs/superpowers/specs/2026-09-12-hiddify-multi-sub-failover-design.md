@@ -184,8 +184,11 @@ On a failure event for the current server:
 
 Extend the core status stream that the app already consumes for the connected proxy
 name with: current tag, previous tag, reason enum (`dial_error`, `stall`,
-`network_change`, `probe_failed`, `better_latency`, `manual`, `rescue_exhausted`),
-timestamp, and rescue duration in ms. Each switch also logs one line:
+`network_change`, `probe_failed`, `better_latency`, `initial`, `manual`,
+`rescue_exhausted`), timestamp, and rescue duration in ms. `initial` marks the
+strategy replacing its provisional first pick with the first measured best; `manual`
+is reserved for a user-driven switch through the `select` group and is not emitted
+by the failover controller today. Each switch also logs one line:
 `failover: <from> -> <to> reason=<r> took=<ms>ms` so the metric in section 1 can be read
 from sing-box logs.
 

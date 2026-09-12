@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:grpc/grpc.dart';
 import 'package:hiddify/core/preferences/preferences_provider.dart';
 import 'package:hiddify/features/auto_group/data/auto_group_repository.dart';
 import 'package:hiddify/features/connection/data/connection_repository.dart';
@@ -21,7 +22,13 @@ class FakeSingboxService extends HiddifyCoreService {
   FakeSingboxService(Ref ref) : super(ref);
 
   final List<String> calls = [];
-  bool failSelectOutbound = false;
+
+  /// selectOutbound throws a GrpcError this many times before it succeeds.
+  /// A negative value means it always throws.
+  int selectOutboundThrowsRemaining = 0;
+
+  /// selectOutbound returns a Left (instead of throwing) on every call.
+  bool selectOutboundReturnsLeft = false;
 
   @override
   TaskEither<String, Unit> setup() {
@@ -50,7 +57,13 @@ class FakeSingboxService extends HiddifyCoreService {
   @override
   TaskEither<String, Unit> selectOutbound(String groupTag, String outboundTag) {
     calls.add('selectOutbound($groupTag, $outboundTag)');
-    if (failSelectOutbound) return TaskEither.left('lowest balancer not ready');
+    if (selectOutboundReturnsLeft) {
+      return TaskEither.left('lowest balancer not ready');
+    }
+    if (selectOutboundThrowsRemaining != 0) {
+      if (selectOutboundThrowsRemaining > 0) selectOutboundThrowsRemaining--;
+      return TaskEither(() async => throw GrpcError.unavailable());
+    }
     return TaskEither.of(unit);
   }
 }
@@ -73,7 +86,12 @@ void main() {
     includeInAuto: true,
   );
 
+  final originalSelectLowestRetryDelay = ConnectionRepositoryImpl.selectLowestRetryDelay;
+
   setUp(() async {
+    // Fake delay so the retry tests do not sleep for real between attempts.
+    ConnectionRepositoryImpl.selectLowestRetryDelay = Duration.zero;
+
     workDir = Directory.systemTemp.createTempSync('recon_connection_repo');
     resolver = ProfilePathResolver(workDir);
     resolver.directory.createSync(recursive: true);
@@ -120,7 +138,10 @@ void main() {
     );
   });
 
-  tearDown(() => workDir.deleteSync(recursive: true));
+  tearDown(() {
+    ConnectionRepositoryImpl.selectLowestRetryDelay = originalSelectLowestRetryDelay;
+    workDir.deleteSync(recursive: true);
+  });
 
   test('connectAutoGroup starts the core then selects the lowest-delay balancer', () async {
     final result = await repo.connectAutoGroup(false).run();
@@ -138,24 +159,42 @@ void main() {
     expect(singbox.calls.last, 'selectOutbound(select, lowest)');
   });
 
-  test('connectAutoGroup still completes when selecting the lowest-delay balancer fails', () async {
-    singbox.failSelectOutbound = true;
+  test('connectAutoGroup still completes when selecting the lowest-delay balancer always returns Left', () async {
+    singbox.selectOutboundReturnsLeft = true;
 
     final result = await repo.connectAutoGroup(false).run();
 
     expect(result.isRight(), isTrue, reason: result.getLeft().toNullable()?.toString());
-    expect(singbox.calls[singbox.calls.length - 2], 'start');
-    expect(singbox.calls.last, 'selectOutbound(select, lowest)');
+    expect(singbox.calls[singbox.calls.length - 4], 'start');
+    expect(singbox.calls.where((c) => c == 'selectOutbound(select, lowest)').length, 3);
   });
 
-  test('reconnectAutoGroup still completes when selecting the lowest-delay balancer fails', () async {
-    singbox.failSelectOutbound = true;
+  test('reconnectAutoGroup still completes when selecting the lowest-delay balancer always returns Left', () async {
+    singbox.selectOutboundReturnsLeft = true;
 
     final result = await repo.reconnectAutoGroup(false).run();
 
     expect(result.isRight(), isTrue, reason: result.getLeft().toNullable()?.toString());
-    expect(singbox.calls[singbox.calls.length - 2], 'restart');
-    expect(singbox.calls.last, 'selectOutbound(select, lowest)');
+    expect(singbox.calls[singbox.calls.length - 4], 'restart');
+    expect(singbox.calls.where((c) => c == 'selectOutbound(select, lowest)').length, 3);
+  });
+
+  test('connectAutoGroup completes after selectOutbound throws twice and succeeds on the third attempt', () async {
+    singbox.selectOutboundThrowsRemaining = 2;
+
+    final result = await repo.connectAutoGroup(false).run();
+
+    expect(result.isRight(), isTrue, reason: result.getLeft().toNullable()?.toString());
+    expect(singbox.calls.where((c) => c == 'selectOutbound(select, lowest)').length, 3);
+  });
+
+  test('connectAutoGroup still completes when selectOutbound always throws a GrpcError', () async {
+    singbox.selectOutboundThrowsRemaining = -1;
+
+    final result = await repo.connectAutoGroup(false).run();
+
+    expect(result.isRight(), isTrue, reason: result.getLeft().toNullable()?.toString());
+    expect(singbox.calls.where((c) => c == 'selectOutbound(select, lowest)').length, 3);
   });
 
   test('connect never selects a balancer', () async {
