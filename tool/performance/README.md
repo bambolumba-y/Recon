@@ -65,3 +65,45 @@ The first complete baseline and continuation instructions are recorded in
 `docs/2026-09-12_recon_stage2_handoff.md`. Remaining plan work includes establishing
 the exact Android core source/artifact relationship, controlled Go scheduling tests,
 and bounded local diagnostics/export before the 48-hour observation.
+
+## Go balancer scenario runner
+
+```powershell
+python tool/performance/go_scenarios.py
+```
+
+Runs the three controller-level scenario tests in the sing-box fork's
+`protocol/group/balancer/scenario_test.go` (`go test ./protocol/group/balancer/
+-run 'TestScenario' -v -count=1 -json`) and collects the machine-readable
+`SCENARIO name=... probes=... switches=... recovery_ms=...` line each test
+prints. Python 3.12, stdlib only.
+
+`--singbox <path>` overrides the sing-box workspace; the default is
+`../recon-core/hiddify-sing-box` resolved from this script's own location.
+`--out <path>` overrides the results directory; the default is
+`docs/performance/<UTC date>-go-scenarios`. The script refuses to overwrite an
+existing results directory and exits non-zero.
+
+Outputs:
+
+- `summary.csv`: columns `scenario,probes,switches,recovery_ms,status`, one row
+  per scenario test in source order. `status` is `pass` or `fail`. A test that
+  fails before it reaches its `t.Logf` call still gets a row, with empty
+  numeric fields.
+- `manifest.json`: `go_version`, `singbox_commit`, `core_commit`,
+  `timestamp_utc` and the exact `command` run, for provenance.
+
+The runner exits non-zero if any scenario test failed.
+
+Known semantics of the current three scenarios, not defects to fix:
+
+- `latency_jitter_24h` reports `switches=1` by design. The test has a negative
+  arm (jitter under tolerance, must not switch) and a positive arm (a real
+  latency excursion past the tolerance, must switch once); the printed line
+  covers the whole test, so it always shows the one switch from the positive
+  arm.
+- `dial_error_with_candidates` reports `recovery_ms=0` because the balancer
+  switches on the same tick as the dial error; there is no probe delay to
+  measure.
+- `rescue_unknown_pool` reports `recovery_ms` from the harness's fake clock,
+  not wall time, so it measures probe scheduling, not real elapsed time.

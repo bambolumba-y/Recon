@@ -1,0 +1,4 @@
+scenario,probes,switches,recovery_ms,status
+dial_error_with_candidates,0,1,0,pass
+rescue_unknown_pool,6,1,650,pass
+latency_jitter_24h,0,1,0,pass
