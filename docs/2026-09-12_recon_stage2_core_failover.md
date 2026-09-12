@@ -2,8 +2,8 @@
 
 Дата: 2026-09-12. Ветка `recon/stage2` (hiddify-app), HEAD на момент написания. Ядро
 собирается из форков `bambolumba-y/recon-sing-box` (ветка `recon/main`, HEAD
-`36e826b2`) и `bambolumba-y/recon-core` (ветка `recon/main`, HEAD `99675a2`, тег
-`v4.1.0-recon.3`) и публикуется как GitHub Release, который приложение скачивает при сборке.
+`36e826b2`) и `bambolumba-y/recon-core` (ветка `recon/main`, HEAD `66ba248`, тег
+`v4.1.0-recon.4`) и публикуется как GitHub Release, который приложение скачивает при сборке.
 
 Тег `v4.1.0-recon.2` включает Go fix wave по итогам финального ревью (правила R1–R10 в
 ledger): спасательный скан ждёт окончания сетевой паузы, активная проверка пропускается
@@ -56,7 +56,8 @@ JSON-конфигурацию ядра. Приложение собираетс�
 | `57def21` | Опции встроены анонимно (`FailoverOptions` embedded), их ключи доходят из JSON настроек; подмодуль sing-box на `83372f88`; тег `v4.1.0-recon.1` |
 | `805fcde` | `select` по умолчанию указывает на `lowest`; подмодуль sing-box на `f190f9c8` |
 | `af82072` | Подмодуль sing-box на `78e381e3`; тег `v4.1.0-recon.2` |
-| `99675a2` | Подмодуль sing-box на `36e826b2` — HEAD; тег `v4.1.0-recon.3` |
+| `99675a2` | Подмодуль sing-box на `36e826b2`; тег `v4.1.0-recon.3` |
+| `66ba248` | Round-robin балансировщик `balance` больше не собирается и не предлагается в `select`: в списке прокси только `lowest` и серверы — HEAD; тег `v4.1.0-recon.4` |
 
 ### hiddify-app, ветка `recon/stage2`
 
