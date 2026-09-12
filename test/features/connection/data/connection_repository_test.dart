@@ -21,6 +21,7 @@ class FakeSingboxService extends HiddifyCoreService {
   FakeSingboxService(Ref ref) : super(ref);
 
   final List<String> calls = [];
+  bool failSelectOutbound = false;
 
   @override
   TaskEither<String, Unit> setup() {
@@ -49,6 +50,7 @@ class FakeSingboxService extends HiddifyCoreService {
   @override
   TaskEither<String, Unit> selectOutbound(String groupTag, String outboundTag) {
     calls.add('selectOutbound($groupTag, $outboundTag)');
+    if (failSelectOutbound) return TaskEither.left('lowest balancer not ready');
     return TaskEither.of(unit);
   }
 }
@@ -134,5 +136,41 @@ void main() {
     expect(result.isRight(), isTrue, reason: result.getLeft().toNullable()?.toString());
     expect(singbox.calls[singbox.calls.length - 2], 'restart');
     expect(singbox.calls.last, 'selectOutbound(select, lowest)');
+  });
+
+  test('connectAutoGroup still completes when selecting the lowest-delay balancer fails', () async {
+    singbox.failSelectOutbound = true;
+
+    final result = await repo.connectAutoGroup(false).run();
+
+    expect(result.isRight(), isTrue, reason: result.getLeft().toNullable()?.toString());
+    expect(singbox.calls[singbox.calls.length - 2], 'start');
+    expect(singbox.calls.last, 'selectOutbound(select, lowest)');
+  });
+
+  test('reconnectAutoGroup still completes when selecting the lowest-delay balancer fails', () async {
+    singbox.failSelectOutbound = true;
+
+    final result = await repo.reconnectAutoGroup(false).run();
+
+    expect(result.isRight(), isTrue, reason: result.getLeft().toNullable()?.toString());
+    expect(singbox.calls[singbox.calls.length - 2], 'restart');
+    expect(singbox.calls.last, 'selectOutbound(select, lowest)');
+  });
+
+  test('connect never selects a balancer', () async {
+    final result = await repo.connect(profile('a', 'Alpha'), false).run();
+
+    expect(result.isRight(), isTrue, reason: result.getLeft().toNullable()?.toString());
+    expect(singbox.calls.last, 'start');
+    expect(singbox.calls, isNot(contains('selectOutbound(select, lowest)')));
+  });
+
+  test('reconnect never selects a balancer', () async {
+    final result = await repo.reconnect(profile('a', 'Alpha'), false).run();
+
+    expect(result.isRight(), isTrue, reason: result.getLeft().toNullable()?.toString());
+    expect(singbox.calls.last, 'restart');
+    expect(singbox.calls, isNot(contains('selectOutbound(select, lowest)')));
   });
 }

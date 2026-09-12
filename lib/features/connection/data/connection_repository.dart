@@ -132,8 +132,14 @@ class ConnectionRepositoryImpl with ExceptionHandler, InfraLogger implements Con
   );
 
   /// Auto mode must run on the core's lowest-delay balancer, not on the selector's default (`balance`).
+  /// A selection failure must not fail the composed connect: `start`/`restart` already succeeded and
+  /// the tunnel is up (on the selector's default outbound), so failing here would show a spurious
+  /// connect error and disable the boot auto-restart. Log and complete with success instead.
   TaskEither<ConnectionFailure, Unit> _selectLowest() =>
-      singbox.selectOutbound('select', 'lowest').mapLeft(ConnectionFailure.unexpected);
+      singbox.selectOutbound('select', 'lowest').mapLeft(ConnectionFailure.unexpected).orElse((failure) {
+        loggy.warning('failed to select lowest-delay balancer after auto connect', failure);
+        return TaskEither.of(unit);
+      });
 
   @visibleForTesting
   TaskEither<ConnectionFailure, Unit> applyConfigOption(String? profileOverride) =>

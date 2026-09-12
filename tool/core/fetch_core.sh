@@ -18,6 +18,18 @@ CHECKSUMS="SHA256SUMS"
 RELEASE_URL="https://github.com/bambolumba-y/recon-core/releases/download/v${CORE_VERSION}"
 LIBS_DIR="android/app/libs"
 
+# Prefer GNU coreutils' sha256sum; fall back to macOS/BSD's shasum -a 256.
+sha256_of() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+  else
+    echo "fetch_core.sh: neither sha256sum nor shasum is available to verify the checksum" >&2
+    exit 1
+  fi
+}
+
 WORKDIR=$(mktemp -d)
 trap 'rm -rf "$WORKDIR"' EXIT
 
@@ -31,7 +43,7 @@ if [ -z "$EXPECTED" ]; then
   exit 1
 fi
 
-ACTUAL=$(sha256sum "${WORKDIR}/${ARCHIVE}" | awk '{print $1}')
+ACTUAL=$(sha256_of "${WORKDIR}/${ARCHIVE}")
 if [ "$EXPECTED" != "$ACTUAL" ]; then
   echo "fetch_core.sh: checksum mismatch for ${ARCHIVE}" >&2
   echo "fetch_core.sh: expected ${EXPECTED}, got ${ACTUAL}" >&2
