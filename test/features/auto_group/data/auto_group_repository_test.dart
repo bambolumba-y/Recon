@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -7,6 +8,7 @@ import 'package:hiddify/features/auto_group/data/auto_group_repository.dart';
 import 'package:hiddify/features/auto_group/model/auto_group_failure.dart';
 import 'package:hiddify/features/profile/data/profile_path_resolver.dart';
 import 'package:hiddify/features/profile/model/profile_entity.dart';
+import 'package:hiddify/features/profile/model/profile_failure.dart';
 import 'package:path/path.dart' as p;
 
 void main() {
@@ -62,6 +64,23 @@ void main() {
     final result = await repo([]).buildConfig().run();
     expect(result.getLeft().toNullable(), isA<AutoGroupNoMembers>());
   });
+
+  test('fails instead of hanging when the members stream never emits', () async {
+    // every later build is chained onto this one through the queue, so a first read without a
+    // timeout would wedge auto mode for the rest of the process
+    final controller = StreamController<Either<ProfileFailure, List<ProfileEntity>>>();
+    addTearDown(controller.close);
+    final r = AutoGroupRepositoryImpl(
+      profilePathResolver: resolver,
+      watchMembersSource: () => controller.stream,
+      setMembershipSource: (_, __) async {},
+      validate: (_, __) async => right(unit),
+    );
+
+    final failure = (await r.buildConfig().run()).getLeft().toNullable();
+    expect(failure, isA<AutoGroupUnexpected>());
+    expect((failure! as AutoGroupUnexpected).error, isA<TimeoutException>());
+  }, timeout: const Timeout(Duration(seconds: 30)));
 
   test('merges member files, writes config and meta, records lastBuild', () async {
     writeProfile('a', [vless('NL', 'a.example.com')]);

@@ -107,6 +107,10 @@ class AutoGroupMerger {
               );
             }
           }
+          // The canonical form is computed after the detour rewrite, so one chained outbound
+          // offered by two subscriptions canonicalises to two different prefixed detour tags and is
+          // not deduplicated; leaf outbounds without a detour are. Planned for Stage 2: canonicalise
+          // with detour normalised back to the original tag.
           final canonical = _canonical(merged);
           final duplicateOf = seenCanonical[canonical];
           if (duplicateOf != null) {

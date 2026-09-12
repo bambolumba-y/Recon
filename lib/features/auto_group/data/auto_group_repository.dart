@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -88,7 +89,9 @@ class AutoGroupRepositoryImpl with InfraLogger implements AutoGroupRepository {
 
   Future<Either<AutoGroupFailure, AutoGroupBuild>> _build() async {
     try {
-      final members = (await _watchMembers().first).getOrElse((l) => throw l);
+      // Every later build is chained onto this one through _queue, so a stream that never emits
+      // would wedge auto mode for the lifetime of the process. Fail visibly instead.
+      final members = (await _watchMembers().first.timeout(const Duration(seconds: 5))).getOrElse((l) => throw l);
       if (members.isEmpty) return left(const AutoGroupNoMembers());
 
       final sources = <AutoGroupSource>[];
