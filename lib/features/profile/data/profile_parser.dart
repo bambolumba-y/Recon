@@ -16,6 +16,18 @@ import 'package:hiddify/utils/utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:meta/meta.dart';
 
+/// Two URLs share an origin when scheme, host and port all match.
+///
+/// Device identity headers are only sent to the subscription's own origin: a subscription body may
+/// list remote lines pointing at any third-party host, and those must not receive the stable HWID.
+bool sameOrigin(Uri? a, Uri? b) {
+  if (a == null || b == null) return false;
+  if (!a.hasScheme || !b.hasScheme || !a.hasAuthority || !b.hasAuthority) return false;
+  return a.scheme.toLowerCase() == b.scheme.toLowerCase() &&
+      a.host.toLowerCase() == b.host.toLowerCase() &&
+      a.port == b.port;
+}
+
 /// parse profile subscription url and headers for data
 ///
 /// ***name parser hierarchy:***
@@ -61,6 +73,7 @@ class ProfileParser {
     required UserOverride? userOverride,
   }) {
     return TaskEither.tryCatch(() async {
+          // a local profile has no subscription origin, so no device identity headers are sent
           await expandRemoteLinesInParallel(
             tempFilePath: tempFilePath,
             httpClient: _httpClient,
@@ -172,6 +185,8 @@ class ProfileParser {
       httpClient: _httpClient,
       cancelToken: cancelToken ?? CancelToken(),
       ref: _ref,
+      deviceHeaders: deviceHeaders,
+      subscriptionUri: Uri.tryParse(url.trim()),
     );
     // fixing headers before return
     return rs.headers.map.map((key, value) {
@@ -184,6 +199,8 @@ class ProfileParser {
     required DioHttpClient httpClient,
     required CancelToken cancelToken,
     required Ref ref,
+    Map<String, String>? deviceHeaders,
+    Uri? subscriptionUri,
     int parallelism = 4,
   }) async {
     final content = await File(tempFilePath).readAsString();
@@ -218,7 +235,8 @@ class ProfileParser {
             userAgent: ref.read(ConfigOptions.useXrayCoreWhenPossible)
                 ? httpClient.userAgent.replaceAll('HiddifyNext', 'HiddifyNextX')
                 : null,
-            headers: ref.read(deviceIdentityProvider).toSubscriptionHeaders(),
+            // the HWID goes to the subscription's own host only, never to a third-party line
+            headers: sameOrigin(Uri.tryParse(line.trim()), subscriptionUri) ? deviceHeaders : null,
           );
 
           results[currentIndex] = (await File(tmpPath).readAsString()).trim();

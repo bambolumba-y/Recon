@@ -8,6 +8,32 @@ void main() {
   const validExtendedUrl = "https://example.com/configurations/user1/filename.yaml?test#b";
   const validSupportUrl = "https://example.com/support";
 
+  group("sameOrigin", () {
+    test("same scheme, host and port", () {
+      expect(sameOrigin(Uri.parse("https://example.com/inner/list"), Uri.parse("https://example.com/sub?a=1")), isTrue);
+    });
+
+    test("different host", () {
+      expect(sameOrigin(Uri.parse("https://tracker.example/x"), Uri.parse("https://example.com/sub")), isFalse);
+    });
+
+    test("same host, different scheme", () {
+      expect(sameOrigin(Uri.parse("http://example.com/x"), Uri.parse("https://example.com/sub")), isFalse);
+    });
+
+    test("same host, different port", () {
+      expect(sameOrigin(Uri.parse("https://example.com:8443/x"), Uri.parse("https://example.com/sub")), isFalse);
+    });
+
+    test("no subscription url", () {
+      expect(sameOrigin(Uri.parse("https://example.com/x"), null), isFalse);
+    });
+
+    test("relative or schemeless url", () {
+      expect(sameOrigin(Uri.parse("example.com/x"), Uri.parse("https://example.com/sub")), isFalse);
+    });
+  });
+
   group("parse", () {
     test("Should use filename in url with no headers and fragment", () {
       final profile = ProfileParser.parse(
