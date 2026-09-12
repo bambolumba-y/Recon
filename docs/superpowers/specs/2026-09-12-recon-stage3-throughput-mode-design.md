@@ -300,7 +300,7 @@ Two more lines are decided here, because otherwise silence is unexplainable:
 
 ```
 throughput: budget exhausted spent_mb=<x> cap_mb=<n>          (once per blocked round)
-throughput: <tag> aborted reason=<paused|inactive|stopped> bytes=<n>
+throughput: <tag> aborted reason=<paused|inactive|rescue|stopped> bytes=<n>
 ```
 
 An aborted measurement charges its bytes and records no value; it is not a failure and does not

@@ -3354,7 +3354,7 @@ After the `urlTest` outbound literal, add the second balancer:
 	}
 ```
 
-Replace the `if len(tags) > 1` block with the two-balancer version (both arms build the same list; the WARP arm is kept as it is today so the diff stays readable):
+Replace the `if len(tags) > 1` block with the two-balancer version (keep the existing `if OutboundMainDetour == WARPConfigTag { ... } else { ... }` structure exactly as it is and replace only the body of each arm with the lines below, so the two arms stay identical and the conditional shape is untouched):
 
 ```go
 	selectorTags := tags
@@ -4065,7 +4065,7 @@ Wi-Fi, к мобильной сети отношения не имеют.
 
 | Ключ (плоский JSON ядра) | Умолчание | Смысл |
 |---|---|---|
-| `throughput-test-url` | `https://speed.cloudflare.com/__down?bytes=104857600` | Откуда качать |
+| `throughput-test-url` | `https://speed.cloudflare.com/__down?bytes=3000000` | Откуда качать |
 | `throughput-probe-bytes` | `3000000` | Сколько байт на один замер, зажато в [524288, 100000000] |
 | `throughput-recheck-interval` | `7200s` | Как часто перепроверять текущий сервер; отрицательное значение отключает |
 | `throughput-daily-budget-mb` | `100` | Суточный бюджет замеров; отрицательное значение отключает замеры |
