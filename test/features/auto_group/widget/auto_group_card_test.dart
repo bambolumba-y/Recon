@@ -37,36 +37,47 @@ void main() {
     preferences = await SharedPreferences.getInstance();
   });
 
-  testWidgets('renders title, counts and the switch', (tester) async {
+  Widget card(AutoGroupBuild? build, List<ProfileEntity> members) => ProviderScope(
+    overrides: [
+      sharedPreferencesProvider.overrideWith((ref) => preferences),
+      translationsProvider.overrideWith((ref) => AppLocale.en.buildSync()),
+      autoGroupMembersProvider.overrideWith((ref) => Stream.value(members)),
+      autoGroupNotifierProvider.overrideWith(() => _FakeAutoGroupNotifier(build)),
+    ],
+    child: const MaterialApp(home: Scaffold(body: AutoGroupCard())),
+  );
+
+  testWidgets('renders title, counts from the last build and the switch', (tester) async {
+    // profileCount differs from the number of live members: the card must show the build's number.
     final build = AutoGroupBuild(
       configPath: 'auto-group.json',
-      profileCount: 2,
+      profileCount: 3,
       serverCount: 7,
       warnings: const [],
       builtAt: DateTime(2026),
     );
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWith((ref) => preferences),
-          translationsProvider.overrideWith((ref) => AppLocale.en.buildSync()),
-          autoGroupMembersProvider.overrideWith((ref) => Stream.value([member('a'), member('b')])),
-          autoGroupNotifierProvider.overrideWith(() => _FakeAutoGroupNotifier(build)),
-        ],
-        child: const MaterialApp(home: Scaffold(body: AutoGroupCard())),
-      ),
-    );
+    await tester.pumpWidget(card(build, [member('a'), member('b')]));
     await tester.pump();
 
     final t = AppLocale.en.buildSync();
     expect(find.text(t.pages.home.autoGroup.title), findsOneWidget);
     expect(find.text(t.pages.home.autoGroup.enabled), findsOneWidget);
     expect(
-      find.text('${t.pages.home.autoGroup.subscriptions(count: 2)}  ·  ${t.pages.home.autoGroup.servers(count: 7)}'),
+      find.text('${t.pages.home.autoGroup.subscriptions(count: 3)}  ·  ${t.pages.home.autoGroup.servers(count: 7)}'),
       findsOneWidget,
     );
+    expect(find.textContaining(t.pages.home.autoGroup.subscriptions(count: 2)), findsNothing);
     expect(find.byType(Switch), findsOneWidget);
     expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+  });
+
+  testWidgets('without a build shows the live member count and no servers value', (tester) async {
+    await tester.pumpWidget(card(null, [member('a'), member('b')]));
+    await tester.pump();
+
+    final t = AppLocale.en.buildSync();
+    expect(find.text(t.pages.home.autoGroup.subscriptions(count: 2)), findsOneWidget);
+    expect(find.textContaining('Servers'), findsNothing);
   });
 }

@@ -51,7 +51,8 @@ class AutoGroupCard extends HookConsumerWidget {
                     const Gap(2),
                     Text(
                       [
-                        t.pages.home.autoGroup.subscriptions(count: members.length),
+                        // Both counts come from the same build so they always describe one moment.
+                        t.pages.home.autoGroup.subscriptions(count: lastBuild?.profileCount ?? members.length),
                         if (lastBuild != null) t.pages.home.autoGroup.servers(count: lastBuild.serverCount),
                         if (lastBuild != null && lastBuild.warnings.isNotEmpty)
                           t.pages.home.autoGroup.warnings(count: lastBuild.warnings.length),
