@@ -1,6 +1,6 @@
 {
   "common": {
-    "appTitle": "Hiddify",
+    "appTitle": "Recon",
     "start": "Start",
     "version": "Version",
     "ok": "OK",
@@ -93,7 +93,16 @@
   "pages": {
     "home": {
       "title": "Home",
-      "quickSettings": "Quick settings"
+      "quickSettings": "Quick settings",
+      "autoGroup": {
+        "title": "Auto group",
+        "subscriptions": "Subscriptions: ${count}",
+        "servers": "Servers: ${count}",
+        "enabled": "Auto-switch between all included subscriptions",
+        "disabled": "Off. Connection uses the active profile",
+        "warnings": "Warnings: ${count}",
+        "semanticSwitch": "Auto group switch"
+      }
     },
     "proxies": {
       "title": "Proxies",
@@ -121,6 +130,11 @@
     },
     "profiles": {
       "title": "Profiles",
+      "autoGroup": {
+        "include": "Include in auto group",
+        "exclude": "Remove from auto group",
+        "member": "In auto group"
+      },
       "add": "Add profile",
       "update": "Update profile",
       "viewAllProfiles": "View all profiles",

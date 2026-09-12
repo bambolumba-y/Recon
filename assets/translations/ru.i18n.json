@@ -1,6 +1,6 @@
 {
   "common": {
-    "appTitle": "Hiddify",
+    "appTitle": "Recon",
     "start": "Начать",
     "version": "Версия",
     "ok": "OK",
@@ -97,7 +97,16 @@
   "pages": {
     "home": {
       "title": "Главная",
-      "quickSettings": "Быстрые настройки"
+      "quickSettings": "Быстрые настройки",
+      "autoGroup": {
+        "title": "Автовыбор",
+        "subscriptions": "Подписок: ${count}",
+        "servers": "Серверов: ${count}",
+        "enabled": "Автопереключение между всеми включёнными подписками",
+        "disabled": "Выключен. Подключение идёт через активный профиль",
+        "warnings": "Предупреждений: ${count}",
+        "semanticSwitch": "Переключатель автовыбора"
+      }
     },
     "proxies": {
       "title": "Прокси",
@@ -124,6 +133,11 @@
     },
     "profiles": {
       "title": "Профили",
+      "autoGroup": {
+        "include": "Добавить в автовыбор",
+        "exclude": "Убрать из автовыбора",
+        "member": "В автовыборе"
+      },
       "add": "Добавить профиль",
       "update": "Обновить профиль",
       "viewAllProfiles": "Посмотреть все профили",

@@ -13,6 +13,7 @@ import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
 import 'package:hiddify/core/router/go_router/helper/active_breakpoint_notifier.dart';
 import 'package:hiddify/core/widget/adaptive_icon.dart';
 import 'package:hiddify/core/widget/adaptive_menu.dart';
+import 'package:hiddify/features/auto_group/notifier/auto_group_notifier.dart';
 import 'package:hiddify/features/profile/model/profile_entity.dart';
 import 'package:hiddify/features/profile/notifier/profile_notifier.dart';
 import 'package:hiddify/features/profile/overview/profiles_notifier.dart';
@@ -147,16 +148,29 @@ class ProfileTile extends HookConsumerWidget {
                               ),
                             )
                           else
-                            Text(
-                              profile.name,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontFamily: PlatformUtils.isWindows ? FontFamily.emoji : null,
-                              ),
-                              semanticsLabel: profile.active
-                                  ? t.pages.profiles.activeProfileName(name: profile.name)
-                                  : t.pages.profiles.nonActiveProfileName(name: profile.name),
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    profile.name,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontFamily: PlatformUtils.isWindows ? FontFamily.emoji : null,
+                                    ),
+                                    semanticsLabel: profile.active
+                                        ? t.pages.profiles.activeProfileName(name: profile.name)
+                                        : t.pages.profiles.nonActiveProfileName(name: profile.name),
+                                  ),
+                                ),
+                                if (profile.includeInAuto) ...[
+                                  const Gap(6),
+                                  Tooltip(
+                                    message: t.pages.profiles.autoGroup.member,
+                                    child: Icon(Icons.alt_route_rounded, size: 18, color: theme.colorScheme.primary),
+                                  ),
+                                ],
+                              ],
                             ),
                           if (subInfo != null) ...[
                             const Gap(4),
@@ -291,6 +305,12 @@ class ProfileActionsMenu extends HookConsumerWidget {
           if (Breakpoint(context).isMobile()) context.pop();
           context.goNamed('profileDetails', pathParameters: {'id': profile.id});
         },
+      ),
+      AdaptiveMenuItem(
+        icon: profile.includeInAuto ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+        title: profile.includeInAuto ? t.pages.profiles.autoGroup.exclude : t.pages.profiles.autoGroup.include,
+        onTap: () async =>
+            await ref.read(autoGroupNotifierProvider.notifier).toggleMembership(profile.id, !profile.includeInAuto),
       ),
       // if (!profile.active)
       AdaptiveMenuItem(

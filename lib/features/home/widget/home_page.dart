@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hiddify/core/app_info/app_info_provider.dart';
 import 'package:hiddify/core/localization/translations.dart';
+import 'package:hiddify/core/preferences/general_preferences.dart';
 import 'package:hiddify/core/router/bottom_sheets/bottom_sheets_notifier.dart';
+import 'package:hiddify/features/auto_group/notifier/auto_group_notifier.dart';
+import 'package:hiddify/features/auto_group/widget/auto_group_card.dart';
 import 'package:hiddify/features/home/widget/connection_button.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
 import 'package:hiddify/features/profile/widget/profile_tile.dart';
@@ -22,6 +25,8 @@ class HomePage extends HookConsumerWidget {
     final t = ref.watch(translationsProvider).requireValue;
     // final hasAnyProfile = ref.watch(hasAnyProfileProvider);
     final activeProfile = ref.watch(activeProfileProvider);
+    final autoGroupEnabled = ref.watch(Preferences.autoGroupEnabled);
+    final hasAutoMembers = (ref.watch(autoGroupMembersProvider).valueOrNull ?? const []).isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -109,15 +114,17 @@ class HomePage extends HookConsumerWidget {
                     MultiSliver(
                       children: [
                         // const Gap(100),
-                        switch (activeProfile) {
-                          AsyncData(value: final profile?) => ProfileTile(
-                            profile: profile,
-                            isMain: true,
-                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            color: Theme.of(context).colorScheme.surfaceContainer,
-                          ),
-                          _ => const Text(""),
-                        },
+                        if (hasAutoMembers) const SliverToBoxAdapter(child: AutoGroupCard()),
+                        if (!(hasAutoMembers && autoGroupEnabled))
+                          switch (activeProfile) {
+                            AsyncData(value: final profile?) => ProfileTile(
+                              profile: profile,
+                              isMain: true,
+                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              color: Theme.of(context).colorScheme.surfaceContainer,
+                            ),
+                            _ => const Text(""),
+                          },
                         const SliverFillRemaining(
                           hasScrollBody: false,
                           child: Column(
