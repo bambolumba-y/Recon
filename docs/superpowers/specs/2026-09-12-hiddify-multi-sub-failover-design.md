@@ -17,7 +17,7 @@ failure (dial error), under 30 s for a stall, measured from sing-box log lines.
 Secondary: no periodic probing of the full pool more often than every 30 min by default.
 
 Non-goals for version 1 (deferred to version 2): latency/speed tuning (DNS, mux, TLS
-fragment, TUN stack), further battery work, iOS/desktop, priority or weights between
+fragment, TUN stack), iOS/desktop, priority or weights between
 subscriptions, the HAPP `crypt5` provider (owner will replace it).
 
 ## 2. Decisions already made with the owner
@@ -28,7 +28,7 @@ subscriptions, the HAPP `crypt5` provider (owner will replace it).
 | Pool policy | Variant A: one flat group over all servers of all included subscriptions, subscriptions are equal |
 | Detection | Reactive first: dial errors, stalled connections, OS network events. Rare full sweep, configurable, can be disabled |
 | Architecture | Merge in Dart, failover logic in the sing-box fork's `balancer`. Two delivery stages |
-| Scope | Version 1 = failover + minimal UI. Version 2 = performance and battery tuning |
+| Scope | Stage 2 retains failover + minimal UI and includes evidence-led performance work: PC tests, then approximately 48 h of normal-use diagnostics. Broader latency tuning remains deferred |
 
 ## 3. Components
 
@@ -109,7 +109,13 @@ localisation mechanism. New elements must look like they shipped with upstream.
 - Unit tests for the merge cover: tag prefixing, detour rewrite, group dropping,
   dedupe, skipped broken profile, empty result.
 
-## 5. Stage 2 — failover logic in the core
+## 5. Stage 2 — failover logic and performance measurement
+
+Measurement and optimisation plan (owner decision, 2026-09-12):
+[Stage 2 performance and field diagnostics](../plans/2026-09-12-recon-stage2-performance.md).
+Run reproducible PC tests first, then collect lightweight local diagnostics during
+approximately 48 hours of normal use. Dedicated hour-long phone benchmarks are
+optional follow-ups, not an entry requirement.
 
 All changes live in `hiddify-sing-box` (`protocol/group/balancer`, `common/monitoring`,
 `option/balancer.go`) plus pass-through of new options in `hiddify-core`
@@ -197,13 +203,16 @@ from sing-box logs.
 - Go unit tests with fake outbounds: hysteresis (no switch under tolerance or dwell),
   stall counter reaching threshold, rescue picks first responder, backoff after full
   failure, unknown servers never selected blind.
-- Device test protocol (manual, logged): (a) toggle airplane mode 10 s and back:
-  reconnect and recovery under 15 s; (b) include one known-dead server and one live
-  server, start on the dead one by manual pick, switch to auto: recovery under 15 s;
-  (c) stall simulation using a server whose firewall drops packets after handshake
-  (owner's own test VPS or a deliberately throttled subscription): recovery under 30 s.
-- Battery: over 24 h of normal use, no full-pool probes more often than the configured
-  sweep; verified from logs.
+- Reproduce hard failures and stalls on controlled PC endpoints and verify the
+  recovery targets in section 1. During normal Android use, report recovery for
+  observed failures; mark unobserved cases as unverified on device. Targeted manual
+  device tests are follow-ups for unresolved Android-specific behaviour.
+- Analyse approximately 48 h of local normal-use diagnostics: CPU coverage, probes,
+  scan triggers, switches, memory trends and gaps. Scheduled sweeps respect the
+  configured interval; failure-driven rescues are counted separately.
+- Preserve a pre-optimisation baseline, rerun PC scenarios after each relevant fix,
+  and use a follow-up field session when claiming real-world improvement. CPU and
+  probe reductions alone do not establish a percentage of battery energy saved.
 
 ## 6. Error handling summary
 
