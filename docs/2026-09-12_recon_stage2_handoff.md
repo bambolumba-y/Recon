@@ -54,7 +54,7 @@ Initial observations, retained as historical context without modifying Go reposi
 
 | Item | Value |
 |---|---|
-| App baseline parent before this work | `d90e03cb` on `recon/main` |
+| App baseline parent before this work | `59ddadc5` on `recon/main` |
 | Android workflow core | `dependencies.properties`: `core.version=4.1.0` |
 | Core download | `.github/workflows/recon-android.yml`: upstream release archive `hiddify-lib-android.tar.gz` |
 | App Git submodule core reference | `c9d6f0f00b2eda34e4fb71863e4e0a62b3e931a0` |
