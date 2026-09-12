@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "started_utc": "20260912T090206.155392Z",
+  "status": "complete",
+  "scope": "synthetic Dart merger only; not VPN CPU or Android energy",
+  "mode": "Dart AOT executable",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "machine": "AMD64",
+  "processor": "Intel64 Family 6 Model 167 Stepping 1, GenuineIntel",
+  "python": "3.14.0",
+  "iterations": 100,
+  "samples": 5,
+  "warmup_merges_per_scenario": 20,
+  "scenario_order": [
+    "single",
+    "disjoint",
+    "overlap",
+    "detours"
+  ],
+  "node_counts_per_profile": [
+    10,
+    100,
+    1000
+  ],
+  "dart": "Dart SDK version: 3.10.4 (stable) (Tue Dec 9 00:01:55 2025 -0800) on \"windows_x64\"",
+  "repositories": {
+    "hiddify-app": {
+      "available": true,
+      "head": "f22e7b8987781f34e3704960c0676d4eb3844da8",
+      "status": ""
+    },
+    "hiddify-core": {
+      "available": true,
+      "head": "db74dfc257d5becb4b4e9dbc7257a3dcdde20692",
+      "status": ""
+    },
+    "hiddify-sing-box": {
+      "available": true,
+      "head": "8d94f445c72dfb704f2ed4d2984dcefc79362e66",
+      "status": ""
+    }
+  },
+  "sha256": {
+    "tool/performance/merge_benchmark.dart": "bd4f75a02f385b5116096a5055620a1c4c357fcfde966f884ab6a029109a69dc",
+    "tool/performance/run_baseline.py": "0d61d21aabae66d3935db350d369742c5cba6c6e1dead2db852de1c57e6b1354",
+    "lib/features/auto_group/data/auto_group_merger.dart": "04397ff917ccc456edf914623a5b24e7512a545e036f1dc69981d2baa08f5254",
+    "dependencies.properties": "f0cdd9e54bcf871462e5ed3d3c3dbc3b4bf2192cfdda1a17f70061ef769ef7c7"
+  },
+  "declared_android_core": "core.version=4.1.0",
+  "local_core_matches_android_artifact": "unverified; core is not executed by this benchmark",
+  "finished_utc": "2026-09-12T09:02:25.880515+00:00"
+}

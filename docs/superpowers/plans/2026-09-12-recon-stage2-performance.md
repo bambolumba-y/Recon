@@ -1,6 +1,6 @@
 # Recon stage 2 — performance and field diagnostics
 
-Date: 2026-09-12. Status: agreed measurement approach; implementation pending.
+Date: 2026-09-12. Status: in progress; first PC baseline completed, Android diagnostics pending.
 
 Owner decision: perform reproducible tests on the PC first, then collect local
 diagnostics during approximately 48 hours of normal Android use and analyse an
@@ -143,3 +143,12 @@ symbols and build/device access before selecting the profiling method.
 - Candidate PC results and, when claiming field improvement, a follow-up observation
   are compared with baseline. Remaining Android-only uncertainties are explicit.
 - No claim of quantified battery savings without a suitable energy comparison.
+
+## 7. Implementation log
+
+- 2026-09-12: added standalone AOT merger benchmark and saved a clean-commit PC
+  baseline (12 scenarios, 60 samples). No production optimisation yet. Core artifact
+  identity must be resolved before Go comparisons. See
+  [handoff and results](../../2026-09-12_recon_stage2_handoff.md) for decisions,
+  checks, commits and next steps. Android diagnostics and field observation remain
+  pending.
