@@ -261,7 +261,7 @@ exported log file.
   platforms 34/35/36, no NDK, Go 1.25.6, WSL Ubuntu present, Flutter absent (must be
   installed), 49 GB free on C:.
 - Providers: both remaining subscriptions are Remnawave panels
-  (`provider-a.invalid`, `provider-b.invalid`). Both serve per-client formats by
+  (hostnames withheld: provider A, provider B). Both serve per-client formats by
   User-Agent (Happ gets Xray JSON, sing-box gets sing-box JSON, others get link lists)
   and both answered every probe without HWID headers with a stub server
   `0.0.0.0:1` named "App not supported / Приложение не поддерживается". Alpha also
