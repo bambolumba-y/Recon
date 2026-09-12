@@ -395,8 +395,8 @@ func NewLowestDelay(outbounds []adapter.Outbound, options option.BalancerOutboun
 func (s *LowestDelay) Now() string                                   // TCP selection tag
 func (s *LowestDelay) Select(metadata adapter.InboundContext, network string, touch bool) adapter.Outbound
 func (s *LowestDelay) UpdateOutboundsInfo(history map[string]*adapter.URLTestHistory) bool // Strategy iface
-func (s *LowestDelay) MarkFailed(tag, reason string) (switched bool, hasCandidate bool)
-func (s *LowestDelay) ForceSelect(tag, reason string) bool
+func (s *LowestDelay) MarkFailed(tag, reason string) (switched bool, hasCandidate bool) // non-current tag: (false, true); current with no healthy candidate: (false, false)
+func (s *LowestDelay) ForceSelect(tag, reason string, delay uint16) bool // delay>0 records a synthetic measured history so the tag counts as healthy
 func (s *LowestDelay) Healthy(tag string) bool
 func (s *LowestDelay) Candidates(exclude string) []string           // measured-first by delay, unknown last
 func (s *LowestDelay) Events() []switchEvent                        // drained by caller (Task 6/8)
@@ -591,10 +591,10 @@ func TestSuccessfulProbeClearsFailure(t *testing.T) {
 func TestForceSelect(t *testing.T) {
 	c := newFakeClock()
 	s := newLD(c, "a", "b")
-	if !s.ForceSelect("b", "rescue") || s.Now() != "b" {
+	if !s.ForceSelect("b", "rescue", 120) || s.Now() != "b" || !s.Healthy("b") {
 		t.Fatalf("force select failed, now=%q", s.Now())
 	}
-	if s.ForceSelect("zzz", "rescue") {
+	if s.ForceSelect("zzz", "rescue", 120) {
 		t.Fatal("unknown tag must be rejected")
 	}
 }
@@ -779,7 +779,7 @@ func (s *LowestDelay) UpdateOutboundsInfo(history map[string]*adapter.URLTestHis
 
 // MarkFailed records a failure signal for tag. If tag is the current selection, it switches to the best
 // healthy candidate right away. hasCandidate=false tells the caller to start a rescue scan.
-func (s *LowestDelay) MarkFailed(tag, reason string) (switched bool, hasCandidate bool) {
+func (s *LowestDelay) MarkFailed(tag, reason string) (switched bool, hasCandidate bool) // non-current tag: (false, true); current with no healthy candidate: (false, false) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.failedAt[tag] = s.now()
@@ -800,7 +800,7 @@ func (s *LowestDelay) MarkFailed(tag, reason string) (switched bool, hasCandidat
 }
 
 // ForceSelect selects tag for both networks (rescue result or manual pick). The tag is treated as alive.
-func (s *LowestDelay) ForceSelect(tag, reason string) bool {
+func (s *LowestDelay) ForceSelect(tag, reason string, delay uint16) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	o, ok := s.byTag[tag]
@@ -995,7 +995,7 @@ func (f *failover) waitIdle(timeout time.Duration) bool     // true when no resc
 
 Behaviour:
 - `reportFailure(tag, reason)`: if `tag != strategy.Now()` → record nothing but still return (the monitoring invalidation is done by the caller). Else `switched, has := strategy.MarkFailed(tag, reason)`; if `switched` → `drainEvents()` (logs `failover:` line with `took=0ms`), `onSwitch()`; if `!has` → `startRescue(reason)`.
-- `startRescue(reason)`: single flight (`atomic.Bool`); goroutine: `started := now()`; for attempt 0..∞: `from := strategy.Now()`; if `strategy.Healthy(from)` → stop (a sweep revived it). `cands := strategy.Candidates(from)`; for each batch of `cfg.rescueBatch`: probe all in parallel with `cfg.rescueTimeout` (each probe: `ProbesRescue++`, outcome counters); the first success (lowest delay among the batch's successes) → `strategy.ForceSelect(tag, reason)`; log `failover: <from> -> <tag> reason=<reason> took=<ms since started>ms`; `onSwitch()`; `Rescues++`; return. If all batches fail: `RescueExhausted++`; log `failover: <from> -> <from> reason=rescue_exhausted took=<ms>ms`; `sleep(backoff[min(attempt, len-1)])`; on ctx error return.
+- `startRescue(reason)`: single flight (`atomic.Bool`); goroutine: `started := now()`; for attempt 0..∞: `from := strategy.Now()`; if `strategy.Healthy(from)` → stop (a sweep revived it). `cands := strategy.Candidates(from)`; for each batch of `cfg.rescueBatch`: probe all in parallel with `cfg.rescueTimeout` (each probe: `ProbesRescue++`, outcome counters); the first success (lowest delay among the batch's successes) → `strategy.ForceSelect(tag, reason, delay)`; log `failover: <from> -> <tag> reason=<reason> took=<ms since started>ms`; `onSwitch()`; `Rescues++`; return. If all batches fail: `RescueExhausted++`; log `failover: <from> -> <from> reason=rescue_exhausted took=<ms>ms`; `sleep(backoff[min(attempt, len-1)])`; on ctx error return.
 - Active check: only when `cfg.activeCheckInterval > 0`; loop: `sleep(interval)`; if paused (see below) → continue; `tag := strategy.Now()`; probe with `cfg.rescueTimeout` (`ProbesActive++`); on error → `reportFailure(tag, "probe_failed")`. Pause: `newFailover` receives nothing about pause; the Balancer (Task 8) passes `paused func() bool` through a setter `setPaused(func() bool)`; default `func() bool { return false }`.
 - `onInterfaceChange()`: `stalls.reset()` (Task 7 provides; here call a `resetStalls func()` hook set by Task 8, default no-op); probe current once in a goroutine (`ProbesInterface++`); on error → `reportFailure(tag, "network_change")`.
 - Diag loop: every `diagInterval` while running, and once in `stop()`: `logger.Info("diag: current=", tag, " probes_active=", …, " probes_rescue=", …, " probes_ok=", …, " probes_failed=", …, " rescues=", …, " rescue_exhausted=", …, " stalls=", …, " switches=", <reason=count comma-joined sorted>)`. Counts only; no addresses.
