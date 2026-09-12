@@ -150,9 +150,10 @@ class DioHttpClient with InfraLogger {
 
     return Options(
       headers: {
+        // the spread comes first so the User-Agent and the credentials computed here always win
+        ...?headers,
         if (userAgent != null) "User-Agent": userAgent,
         if (basicAuth != null) "authorization": basicAuth,
-        ...?headers,
         // "Accept": "application/json",
         // "Content-Type": "application/json",
       },
