@@ -2,8 +2,8 @@
 
 Дата: 2026-09-12. Ветка `recon/stage2` (hiddify-app), HEAD на момент написания. Ядро
 собирается из форков `bambolumba-y/recon-sing-box` (ветка `recon/main`, HEAD
-`78e381e3`) и `bambolumba-y/recon-core` (ветка `recon/main`, HEAD `af82072`, тег
-`v4.1.0-recon.2`) и публикуется как GitHub Release, который приложение скачивает при сборке.
+`36e826b2`) и `bambolumba-y/recon-core` (ветка `recon/main`, HEAD `99675a2`, тег
+`v4.1.0-recon.3`) и публикуется как GitHub Release, который приложение скачивает при сборке.
 
 Тег `v4.1.0-recon.2` включает Go fix wave по итогам финального ревью (правила R1–R10 в
 ledger): спасательный скан ждёт окончания сетевой паузы, активная проверка пропускается
@@ -43,7 +43,8 @@ JSON-конфигурацию ядра. Приложение собираетс�
 | `e3b55e11` | Подключение контроллера отказов и детектора зависаний, строка `failover:` |
 | `83372f88` | Детектор столов через счётчики байт без потери fast path сплайса, точные счётчики переключений |
 | `f190f9c8` | Fix wave после финального ревью: пауза сети в спасательном скане, тикер столов по требованию, подтверждение зависания пробой, `stalls_suppressed`, флаг testing в `TestAndWait`, константы причин, guard'ы монитора |
-| `78e381e3` | Флаг testing снимается через `defer`; single-flight подтверждения зависания на тег — HEAD |
+| `78e381e3` | Флаг testing снимается через `defer`; single-flight подтверждения зависания на тег |
+| `36e826b2` | Поля `rss_mb` и `cpu_s` в строке `diag:` (память процесса и процессорное время) — HEAD |
 
 ### recon-core, ветка `recon/main`
 
@@ -54,7 +55,8 @@ JSON-конфигурацию ядра. Приложение собираетс�
 | `193a479` | `FailoverOptions` в `v2/config/hiddify_option.go`, обход раз в 30 минут по умолчанию |
 | `57def21` | Опции встроены анонимно (`FailoverOptions` embedded), их ключи доходят из JSON настроек; подмодуль sing-box на `83372f88`; тег `v4.1.0-recon.1` |
 | `805fcde` | `select` по умолчанию указывает на `lowest`; подмодуль sing-box на `f190f9c8` |
-| `af82072` | Подмодуль sing-box на `78e381e3` — HEAD; тег `v4.1.0-recon.2` |
+| `af82072` | Подмодуль sing-box на `78e381e3`; тег `v4.1.0-recon.2` |
+| `99675a2` | Подмодуль sing-box на `36e826b2` — HEAD; тег `v4.1.0-recon.3` |
 
 ### hiddify-app, ветка `recon/stage2`
 
@@ -120,8 +122,19 @@ failover: <откуда> -> <куда> reason=<причина> took=<мс>ms
 Раз в 15 минут и один раз при остановке ядра — сводка:
 
 ```
-diag: current=<tag> probes_active=<n> probes_rescue=<n> probes_interface=<n> probes_ok=<n> probes_failed=<n> rescues=<n> rescue_exhausted=<n> stalls=<n> switches=<reason>=<n>,<reason>=<n>,...
+diag: current=<tag> probes_active=<n> probes_rescue=<n> probes_interface=<n> probes_ok=<n> probes_failed=<n> rescues=<n> rescue_exhausted=<n> stalls=<n> stalls_suppressed=<n> rss_mb=<МБ> cpu_s=<с> switches=<reason>=<n>,<reason>=<n>,...
 ```
+
+Счётчики накапливаются с запуска ядра. `stalls_suppressed` — зависания, которые
+подтверждающая проба признала ложными. `rss_mb` — резидентная память процесса, в
+котором работает ядро (на Android это процесс VPN-сервиса, из `/proc/self/statm`),
+`cpu_s` — процессорное время user+system того же процесса с его старта (`getrusage`).
+Рост `rss_mb` от сводки к сводке без выхода на плато — признак утечки; `cpu_s` за
+сутки показывает, сколько процессора съедает ядро. Батарею эти поля не измеряют. На
+платформах без источника данных пишется `n/a`.
+
+Обе строки пишутся на уровне `info`. Уровень логов приложения по умолчанию `warn`,
+поэтому перед наблюдением его нужно переключить на `info` в настройках.
 
 Обе строки идут через логгер ядра в `box.log` (путь по умолчанию `data/box.log`,
 поле `LogFile` в `v2/config/hiddify_option.go`). В приложении их можно прочитать
