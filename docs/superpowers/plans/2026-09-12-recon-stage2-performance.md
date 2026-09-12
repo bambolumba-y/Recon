@@ -152,3 +152,11 @@ symbols and build/device access before selecting the profiling method.
   [handoff and results](../../2026-09-12_recon_stage2_handoff.md) for decisions,
   checks, commits and next steps. Android diagnostics and field observation remain
   pending.
+
+- 2026-09-12 follow-up: [core provenance audit](../../2026-09-12_recon_core_provenance.md)
+  confirms the release source pins, official/local AAR equality and stripped native
+  library equality in local debug APKs. All official ABI binaries contain
+  `-gcflags="all=-N -l"`; evaluate compilation flags as a separate candidate while
+  preserving the official and source-built references. Upstream dirty-tree metadata
+  prevents claiming a reproduced clean build. Owner will continue diagnostics and
+  tests in Claude; this audit changes no application/build behaviour.

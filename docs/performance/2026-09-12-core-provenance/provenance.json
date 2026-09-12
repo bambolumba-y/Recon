@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-09-12T09:10:19.714695+00:00",
+  "scope": "Release provenance and existing local debug APKs; no tests, benchmarks or clean rebuild performed",
+  "core": {
+    "repository": "https://github.com/hiddify/hiddify-core",
+    "tag": "v4.1.0",
+    "commit": "c9d6f0f00b2eda34e4fb71863e4e0a62b3e931a0",
+    "sing_box_commit": "0a02b7729f6a211436bb8bdcd8696c283eb27767",
+    "ray2sing_commit": "f58be84e30d946915a1de437fbcc3d3ffca18a23"
+  },
+  "release": {
+    "id": 293501270,
+    "tag_name": "v4.1.0",
+    "published_at": "2026-03-05T13:29:15Z",
+    "html_url": "https://github.com/hiddify/hiddify-core/releases/tag/v4.1.0"
+  },
+  "asset": {
+    "id": 367533137,
+    "name": "hiddify-lib-android.tar.gz",
+    "size": 105829904,
+    "digest": "sha256:6c4841f7aab23eb1fb17831349ecdfc3ca9c31553b8cbe5effd820cb12607f56",
+    "created_at": "2026-03-05T13:29:16Z",
+    "updated_at": "2026-03-05T13:29:20Z",
+    "browser_download_url": "https://github.com/hiddify/hiddify-core/releases/download/v4.1.0/hiddify-lib-android.tar.gz"
+  },
+  "build": {
+    "run_id": 22719909723,
+    "run_url": "https://github.com/hiddify/hiddify-core/actions/runs/22719909723",
+    "android_job_id": 65879054994,
+    "job_conclusion": "success",
+    "job_logs_http_status": 410,
+    "go_version": "go1.25.6",
+    "gomobile_version": "v0.1.11",
+    "java_version_from_workflow": "17",
+    "ndk_version_from_workflow": "r28",
+    "minimum_android_api": 21,
+    "gcflags": "all=-N -l",
+    "vcs_modified": true,
+    "limitation": "Embedded revision and release workflow establish intended source identity. Dirty build metadata and expired logs prevent proof of exact clean source reproduction."
+  },
+  "artifact_comparison": {
+    "archive_sha256": "6c4841f7aab23eb1fb17831349ecdfc3ca9c31553b8cbe5effd820cb12607f56",
+    "official_aar_sha256": "8bc1ce38bca2dd3e13022a4457336602490f2e7d063626a0192d89209a49d07e",
+    "local_aar_sha256": "8bc1ce38bca2dd3e13022a4457336602490f2e7d063626a0192d89209a49d07e",
+    "aar_libraries": [
+      {
+        "entry": "jni/armeabi-v7a/libhiddify-core.so",
+        "size": 70017808,
+        "sha256": "cfa9ab7ea94cfee6d977cfa849a1bb93ee20085f770ca95282d281d3c9848c04",
+        "build_settings": [
+          "build\t-gcflags=\"all=-N -l\"",
+          "build\tGOARCH=arm",
+          "build\tGOOS=android",
+          "build\tvcs.revision=c9d6f0f00b2eda34e4fb71863e4e0a62b3e931a0",
+          "build\tvcs.modified=true"
+        ]
+      },
+      {
+        "entry": "jni/arm64-v8a/libhiddify-core.so",
+        "size": 78393416,
+        "sha256": "4a0f82c882d98e942338d5e7515deedb0c9ddbfc0d522ba8ec63e391be634a0f",
+        "build_settings": [
+          "build\t-gcflags=\"all=-N -l\"",
+          "build\tGOARCH=arm64",
+          "build\tGOOS=android",
+          "build\tvcs.revision=c9d6f0f00b2eda34e4fb71863e4e0a62b3e931a0",
+          "build\tvcs.modified=true"
+        ]
+      },
+      {
+        "entry": "jni/x86/libhiddify-core.so",
+        "size": 75689848,
+        "sha256": "c392bc69a9a9c247b11aeee49fd94de04533534ea9c4257074c7ede5e34325fe",
+        "build_settings": [
+          "build\t-gcflags=\"all=-N -l\"",
+          "build\tGOARCH=386",
+          "build\tGOOS=android",
+          "build\tvcs.revision=c9d6f0f00b2eda34e4fb71863e4e0a62b3e931a0",
+          "build\tvcs.modified=true"
+        ]
+      },
+      {
+        "entry": "jni/x86_64/libhiddify-core.so",
+        "size": 85461552,
+        "sha256": "a8ddd30da042133d7018603588646a91bb70ab353a54fa66be327981109f334f",
+        "build_settings": [
+          "build\t-gcflags=\"all=-N -l\"",
+          "build\tGOARCH=amd64",
+          "build\tGOOS=android",
+          "build\tvcs.revision=c9d6f0f00b2eda34e4fb71863e4e0a62b3e931a0",
+          "build\tvcs.modified=true"
+        ]
+      }
+    ],
+    "local_apks": [
+      {
+        "path": "build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk",
+        "sha256": "25dae1fe56fb6dd136754c0e00ea132b160495fd594358ad931505cf49906769",
+        "libraries": [
+          {
+            "entry": "lib/arm64-v8a/libhiddify-core.so",
+            "sha256": "533381881b7702a3693bf0d54ccce7fd302bc300573d900910c93a4c4eb1480a",
+            "matches_official_aar": false
+          }
+        ]
+      },
+      {
+        "path": "build/app/outputs/flutter-apk/app-armeabi-v7a-debug.apk",
+        "sha256": "85fca55e2787f1df2554afc176d4182157f2c8aa40cc0e5e3f6430d4d58f9035",
+        "libraries": [
+          {
+            "entry": "lib/armeabi-v7a/libhiddify-core.so",
+            "sha256": "794e74300cc0c7546eaefc76d6ec163beb998ddfc198f1ea4a52b97ff8fc3c6b",
+            "matches_official_aar": false
+          }
+        ]
+      },
+      {
+        "path": "build/app/outputs/flutter-apk/app-debug.apk",
+        "sha256": "c35e4146767589b2090e5ba848da9fe5aa2daa0a8e34c67b6e83d0964eb30a2e",
+        "libraries": [
+          {
+            "entry": "lib/armeabi-v7a/libhiddify-core.so",
+            "sha256": "794e74300cc0c7546eaefc76d6ec163beb998ddfc198f1ea4a52b97ff8fc3c6b",
+            "matches_official_aar": false
+          },
+          {
+            "entry": "lib/arm64-v8a/libhiddify-core.so",
+            "sha256": "533381881b7702a3693bf0d54ccce7fd302bc300573d900910c93a4c4eb1480a",
+            "matches_official_aar": false
+          },
+          {
+            "entry": "lib/x86_64/libhiddify-core.so",
+            "sha256": "b697ee88f9af6760647e2cbe0cc29e0799a56ad9e357273679b627b577c9eeac",
+            "matches_official_aar": false
+          }
+        ]
+      },
+      {
+        "path": "build/app/outputs/flutter-apk/app-x86_64-debug.apk",
+        "sha256": "c51f7f76678218695758b5e90378a486b6a7260056fe98c3a4cf3938283e3d07",
+        "libraries": [
+          {
+            "entry": "lib/x86_64/libhiddify-core.so",
+            "sha256": "b697ee88f9af6760647e2cbe0cc29e0799a56ad9e357273679b627b577c9eeac",
+            "matches_official_aar": false
+          }
+        ]
+      }
+    ],
+    "stripping_comparison": {
+      "ndk": "28.2.13676358",
+      "llvm_version": "llvm-strip, compatible with GNU strip\nLLVM (http://llvm.org/):\n  LLVM version 19.0.1 (/mnt/disks/build-disk/src/android/llvm-r530567/out/llvm-project/llvm 97a699bf4812a18fb657c2779f5296a4ab2694d2)\n  Optimized build.",
+      "checks": [
+        {
+          "abi": "armeabi-v7a",
+          "transform": "llvm-strip --strip-unneeded",
+          "stripped_sha256": "794e74300cc0c7546eaefc76d6ec163beb998ddfc198f1ea4a52b97ff8fc3c6b",
+          "apk_entry_sha256": "794e74300cc0c7546eaefc76d6ec163beb998ddfc198f1ea4a52b97ff8fc3c6b",
+          "exact_match": true
+        },
+        {
+          "abi": "arm64-v8a",
+          "transform": "llvm-strip --strip-unneeded",
+          "stripped_sha256": "533381881b7702a3693bf0d54ccce7fd302bc300573d900910c93a4c4eb1480a",
+          "apk_entry_sha256": "533381881b7702a3693bf0d54ccce7fd302bc300573d900910c93a4c4eb1480a",
+          "exact_match": true
+        },
+        {
+          "abi": "x86_64",
+          "transform": "llvm-strip --strip-unneeded",
+          "stripped_sha256": "b697ee88f9af6760647e2cbe0cc29e0799a56ad9e357273679b627b577c9eeac",
+          "apk_entry_sha256": "b697ee88f9af6760647e2cbe0cc29e0799a56ad9e357273679b627b577c9eeac",
+          "exact_match": true
+        }
+      ]
+    }
+  },
+  "follow_up_owner": "Claude: build, controlled compiler-flags experiment, diagnostics, tests and field observation",
+  "sibling_checkouts_changed": false,
+  "application_build_configuration_changed": false
+}

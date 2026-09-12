@@ -1,0 +1,151 @@
+jni/arm64-v8a/libhiddify-core.so: go1.25.6
+	path	github.com/hiddify/hiddify-core/build/arm64/libhiddify-core
+	mod	github.com/hiddify/hiddify-core	v1.9.1-0.20260305132239-c9d6f0f00b2e+dirty
+	dep	filippo.io/edwards25519	v1.1.0	h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
+	dep	github.com/AdguardTeam/golibs	v0.32.7	h1:3dmGlAVgmvquCCwHsvEl58KKcRAK3z1UnjMnwSIeDH4=
+	dep	github.com/Jigsaw-Code/outline-sdk	v0.0.16	h1:WbHmv80FKDIpzEmR3GehTbq5CibYTLvcxIIpMMILiEs=
+	dep	github.com/Psiphon-Labs/bolt	v0.0.0-20200624191537-23cedaef7ad7	h1:Hx/NCZTnvoKZuIBwSmxE58KKoNLXIGG6hBJYN7pj9Ag=
+	dep	github.com/Psiphon-Labs/consistent	v0.0.0-20240322131436-20aaa4e05737	h1:QTMy7Uc2Xc7fz6O/Khy1xi0VBND13GqzLUE2mHw6HUU=
+	dep	github.com/Psiphon-Labs/goptlib	v0.0.0-20200406165125-c0e32a7a3464	h1:VmnMMMheFXwLV0noxYhbJbLmkV4iaVW3xNnj6xcCNHo=
+	dep	github.com/Psiphon-Labs/psiphon-tls	v0.0.0-20250318183125-2a2fae2db378
+	=>	./hiddify-sing-box/replace/psiphon-tls	(devel)
+
+	dep	github.com/Psiphon-Labs/psiphon-tunnel-core	v1.0.11-0.20260202154140-a3384a551c62	h1:QH1wzk3ixBdbiy+D6X42kq9Xtqz4ljdJOCQ4IP0E4tc=
+	dep	github.com/Psiphon-Labs/quic-go	v0.0.0-20250527153145-79fe45fb83b1
+	=>	./hiddify-sing-box/replace/psiphon-quic-go	(devel)
+
+	dep	github.com/Psiphon-Labs/utls	v0.0.0-20260129182755-24497d415a8d	h1:PlKwrArEuQOVqEmThSs9KsXMiBduP8MSu9rlWmQ4jgE=
+	dep	github.com/ajg/form	v1.5.1	h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
+	dep	github.com/ameshkov/dnscrypt/v2	v2.4.0
+	=>	github.com/shtorm-7/dnscrypt/v2	v2.4.0-extended-1.0.0	h1:e5s7RKBd2rIPR0StbvZ2vTVtJ5jDTsTk5wtIIapZTRg=
+
+	dep	github.com/ameshkov/dnsstamps	v1.0.3	h1:Srzik+J9mivH1alRACTbys2xOxs0lRH9qnTA7Y1OYVo=
+	dep	github.com/amnezia-vpn/amneziawg-go	v0.2.16	h1:XY6HOq/xtqH8ZXMncRWkjFs85EKdN10NLNnw23kTpE0=
+	dep	github.com/andybalholm/brotli	v1.1.1	h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
+	dep	github.com/anytls/sing-anytls	v0.0.11	h1:w8e9Uj1oP3m4zxkyZDewPk0EcQbvVxb7Nn+rapEx4fc=
+	dep	github.com/axiomhq/hyperloglog	v0.2.6	h1:sRhvvF3RIXWQgAXaTphLp4yJiX4S0IN3MWTaAgZoRJw=
+	dep	github.com/bepass-org/warp-plus	v1.2.6
+	=>	github.com/hiddify/warp-plus	v0.0.0-20240717223357-4f3122e0d11d	h1:vRGKh9ou+/vQGfVYa8MczhbIVjHxlP52OWwrDWO77RA=
+
+	dep	github.com/bifurcation/mint	v0.0.0-20180306135233-198357931e61	h1:BU+NxuoaYPIvvp8NNkNlLr8aA0utGyuunf4Q3LJ0bh0=
+	dep	github.com/biter777/countries	v1.7.5	h1:MJ+n3+rSxWQdqVJU8eBy9RqcdH6ePPn4PJHocVWUa+Q=
+	dep	github.com/bits-and-blooms/bitset	v1.10.0	h1:ePXTeiPEazB5+opbv5fr8umg2R/1NlzgDsyepwsSr88=
+	dep	github.com/bits-and-blooms/bloom/v3	v3.6.0	h1:dTU0OVLJSoOhz9m68FTXMFfA39nR8U/nTCs1zb26mOI=
+	dep	github.com/cespare/xxhash	v1.1.0	h1:a6HrQnmkObjyL+Gs60czilIUGqrzKutQD6XZog3p+ko=
+	dep	github.com/cheekybits/genny	v0.0.0-20170328200008-9127e812e1e9	h1:a1zrFsLFac2xoM6zG1u72DWJwZG3ayttYLfmLbxVETk=
+	dep	github.com/cloudflare/circl	v1.6.1	h1:zqIqSPIndyBh1bjLVVDHMPpVKqp8Su/V+6MeDzzQBQ0=
+	dep	github.com/cognusion/go-cache-lru	v0.0.0-20170419142635-f73e2280ecea	h1:9C2rdYRp8Vzwhm3sbFX0yYfB+70zKFRjn7cnPCucHSw=
+	dep	github.com/cretz/bine	v0.2.0	h1:8GiDRGlTgz+o8H9DSnsl+5MeBK4HsExxgl6WgzOCuZo=
+	dep	github.com/database64128/netx-go	v0.1.1	h1:dT5LG7Gs7zFZBthFBbzWE6K8wAHjSNAaK7wCYZT7NzM=
+	dep	github.com/database64128/tfo-go/v2	v2.3.1	h1:EGE+ELd5/AQ0X6YBlQ9RgKs8+kciNhgN3d8lRvfEJQw=
+	dep	github.com/dgryski/go-metro	v0.0.0-20250106013310-edb8663e5e33	h1:ucRHb6/lvW/+mTEIGbvhcYU3S8+uSNkuMjx/qZFfhtM=
+	dep	github.com/enfein/mieru/v3	v3.27.0	h1:+E/1TF7OfimS2h582atEXQxPtJMyvqUTFBJUgzn1rxg=
+	dep	github.com/florianl/go-nfqueue/v2	v2.0.2	h1:FL5lQTeetgpCvac1TRwSfgaXUn0YSO7WzGvWNIp3JPE=
+	dep	github.com/flynn/noise	v1.1.0	h1:KjPQoQCEFdZDiP03phOvGi11+SVVhBG2wOWAorLsstg=
+	dep	github.com/fsnotify/fsnotify	v1.7.0	h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nosvA=
+	dep	github.com/fxamacker/cbor/v2	v2.7.0	h1:iM5WgngdRBanHcxugY4JySA0nk1wZorNOpTgCMedv5E=
+	dep	github.com/go-chi/chi/v5	v5.2.3	h1:WQIt9uxdsAbgIYgid+BpYc+liqQZGMHRaUwp0JUcvdE=
+	dep	github.com/go-chi/render	v1.0.3	h1:AsXqd2a1/INaIfUSKq3G5uA8weYx20FOsM7uSoCyyt4=
+	dep	github.com/gobwas/httphead	v0.1.0	h1:exrUm0f4YX0L7EBwZHuCF4GDp8aJfVeBrlLQrs6NqWU=
+	dep	github.com/gobwas/pool	v0.2.1	h1:xfeeEhW7pwmX8nuLVlqbzVc7udMDrwetjEv+TZIz1og=
+	dep	github.com/godbus/dbus/v5	v5.2.1	h1:I4wwMdWSkmI57ewd+elNGwLRf2/dtSaFz1DujfWYvOk=
+	dep	github.com/gofrs/uuid/v5	v5.4.0	h1:EfbpCTjqMuGyq5ZJwxqzn3Cbr2d0rUZU7v5ycAk/e/0=
+	dep	github.com/golang/groupcache	v0.0.0-20210331224755-41bb18bfe9da	h1:oI5xCqsCo564l8iNU+DwB5epxmsaqB+rhGL0m5jtYqE=
+	dep	github.com/golang/snappy	v0.0.1	h1:Qgr9rKW7uDUkrbSmQeiDsGa8SjGyCOGtuasMWwvp2P4=
+	dep	github.com/google/btree	v1.1.3	h1:CVpQJjYgC4VbzxeGVHfvZrv1ctoYCAI8vbl07Fcxlyg=
+	dep	github.com/grafov/m3u8	v0.0.0-20171211212457-6ab8f28ed427	h1:xh96CCAZTX8LJPFoOVRgTwZbn2DvJl8fyCyivohhSIg=
+	dep	github.com/hashicorp/yamux	v0.1.2	h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8=
+	dep	github.com/hiddify/ray2sing	v0.0.0-20260209214534-63c82f8c23a6
+	=>	./ray2sing	(devel)
+
+	dep	github.com/kamstrup/intmap	v0.5.2	h1:qnwBm1mh4XAnW9W9Ue9tZtTff8pS6+s6iKF6JRIV2Dk=
+	dep	github.com/klauspost/compress	v1.18.0	h1:c/Cqfb0r+Yi+JtIEq73FWXVkRonBlf0CRNYc8Zttxdo=
+	dep	github.com/klauspost/cpuid/v2	v2.3.0	h1:S4CRMLnYUhGeDFDqkGriYKdfoFlDnMtqTiI/sFzhA9Y=
+	dep	github.com/klauspost/reedsolomon	v1.12.0	h1:I5FEp3xSwVCcEh3F5A7dofEfhXdF/bWhQWPH+XwBFno=
+	dep	github.com/logrusorgru/aurora	v2.0.3+incompatible	h1:tOpm7WcpBTn4fjmVfgpQq0EfczGlG91VSDkswnjF5A8=
+	dep	github.com/mahsanet/dnstt	v0.0.0-20260208072932-d75b50056612	h1:d4i0AY/0omVj2Rv/WKEWlO1f6EalZpogr148GKhlgrw=
+	dep	github.com/marusama/semaphore	v0.0.0-20171214154724-565ffd8e868a	h1:6SRny9FLB1eWasPyDUqBQnMi9NhXU01XIlB0ao89YoI=
+	dep	github.com/mdlayher/netlink	v1.7.3-0.20250113171957-fbb4dce95f42	h1:A1Cq6Ysb0GM0tpKMbdCXCIfBclan4oHk1Jb+Hrejirg=
+	dep	github.com/mdlayher/socket	v0.5.1	h1:VZaqt6RkGkt2OE9l3GcC6nZkqD3xKeQLyfleW/uBcos=
+	dep	github.com/metacubex/utls	v1.8.4	h1:HmL9nUApDdWSkgUyodfwF6hSjtiwCGGdyhaSpEejKpg=
+	dep	github.com/miekg/dns	v1.1.72	h1:vhmr+TF2A3tuoGNkLDFK9zi36F2LS+hKTRW0Uf8kbzI=
+	dep	github.com/pires/go-proxyproto	v0.9.2	h1:H1UdHn695zUVVmB0lQ354lOWHOy6TZSpzBl3tgN0s1U=
+	dep	github.com/pkg/errors	v0.9.1	h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+	dep	github.com/quic-go/qpack	v0.6.0	h1:g7W+BMYynC1LbYLSqRt8PBg5Tgwxn214ZZR34VIOjz8=
+	dep	github.com/refraction-networking/utls	v1.8.2	h1:j4Q1gJj0xngdeH+Ox/qND11aEfhpgoEvV+S9iJ2IdQo=
+	dep	github.com/sagernet/bbolt	v0.0.0-20231014093535-ea5cb2fe9f0a	h1:+NkI2670SQpQWvkkD2QgdTuzQG263YZ+2emfpeyGqW0=
+	dep	github.com/sagernet/cors	v1.2.1	h1:Cv5Z8y9YSD6Gm+qSpNrL3LO4lD3eQVvbFYJSG7JCMHQ=
+	dep	github.com/sagernet/cronet-go	v0.0.0-20260117110918-dc1cda1fe287	h1:0BYNmr0ptjsII948U0oBFmrbo4qEaCFcrE2JPRg3Zlk=
+	dep	github.com/sagernet/cronet-go/all	v0.0.0-20260117110918-dc1cda1fe287	h1:ghxhYSBQpzkakqWqJDvXr/Zmxe0WjTjKuALEGbjGiGY=
+	dep	github.com/sagernet/cronet-go/lib/android_arm64	v0.0.0-20260117110516-f21660bef13f	h1:gL7H8HS8s38adz4/HZtRHh79qMwsbLTRRPz4GQ9LcWI=
+	dep	github.com/sagernet/fswatch	v0.1.1	h1:YqID+93B7VRfqIH3PArW/XpJv5H4OLEVWDfProGoRQs=
+	dep	github.com/sagernet/gomobile	v0.1.11	h1:niMQAspvuThup5eRZQpsGcbM76zAvnsGr7RUIpnQMDQ=
+	dep	github.com/sagernet/gvisor	v0.0.0-20250811.0-sing-box-mod.1	h1:AzCE2RhBjLJ4WIWc/GejpNh+z30d5H1hwaB0nD9eY3o=
+	dep	github.com/sagernet/netlink	v0.0.0-20240612041022-b9a21c07ac6a	h1:ObwtHN2VpqE0ZNjr6sGeT00J8uU7JF4cNUdb44/Duis=
+	dep	github.com/sagernet/nftables	v0.3.0-beta.4	h1:kbULlAwAC3jvdGAC1P5Fa3GSxVwQJibNenDW2zaXr8I=
+	dep	github.com/sagernet/quic-go	v0.59.0-sing-box-mod.2	h1:hJUL+HtxEOjxsa0CsucbBVqI/AMS4k52NwNU637zmdw=
+	dep	github.com/sagernet/sing	v0.8.0-beta.11	h1:nn/2Uod61b5rLHnXCuaFcbDxI1oRCodaxjzjt7Mobe4=
+	dep	github.com/sagernet/sing-box	v1.13.0
+	=>	./hiddify-sing-box	(devel)
+
+	dep	github.com/sagernet/sing-dns	v0.3.0
+	=>	github.com/shtorm-7/sing-dns	v0.4.6-extended-1.0.0	h1:/fyqTYciGYTEbDDySW22t9vY5bSr+lCeLZfjVlv9qgw=
+
+	dep	github.com/sagernet/sing-mux	v0.3.4	h1:ZQplKl8MNXutjzbMVtWvWG31fohhgOfCuUZR4dVQ8+s=
+	dep	github.com/sagernet/sing-quic	v0.6.0-beta.11	h1:eUusxITKKRedhWC2ScUYFUvD96h/QfbKLaS3N6/7in4=
+	dep	github.com/sagernet/sing-shadowsocks	v0.2.8	h1:PURj5PRoAkqeHh2ZW205RWzN9E9RtKCVCzByXruQWfE=
+	dep	github.com/sagernet/sing-shadowsocks2	v0.2.1	h1:dWV9OXCeFPuYGHb6IRqlSptVnSzOelnqqs2gQ2/Qioo=
+	dep	github.com/sagernet/sing-shadowtls	v0.2.1-0.20250503051639-fcd445d33c11	h1:tK+75l64tm9WvEFrYRE1t0YxoFdWQqw/h7Uhzj0vJ+w=
+	dep	github.com/sagernet/sing-tun	v0.8.0-beta.17	h1:6DdbNXeTFYj8Tb4FCh8Mp2boA3rVY6VNqzTOObj7Xis=
+	dep	github.com/sagernet/sing-vmess	v0.2.8-0.20250909125414-3aed155119a1	h1:aSwUNYUkVyVvdmBSufR8/nRFonwJeKSIROxHcm5br9o=
+	dep	github.com/sagernet/smux	v1.5.50-sing-box-mod.1	h1:XkJcivBC9V4wBjiGXIXZ229aZCU1hzcbp6kSkkyQ478=
+	dep	github.com/sagernet/wireguard-go	v0.0.2-beta.1.0.20250917110311-16510ac47288
+	=>	./hiddify-sing-box/replace/wireguard-go	(devel)
+
+	dep	github.com/sagernet/ws	v0.0.0-20231204124109-acfe8907c854	h1:6uUiZcDRnZSAegryaUGwPC/Fj13JSHwiTftrXhMmYOc=
+	dep	github.com/shadowsocks/go-shadowsocks2	v0.1.5	h1:PDSQv9y2S85Fl7VBeOMF9StzeXZyK1HakRm86CUbr28=
+	dep	github.com/syndtr/gocapability	v0.0.0-20200815063812-42c35b437635	h1:kdXcSzyDtseVEc4yCz2qF8ZrQvIDBJLl4S1c3GCXmoI=
+	dep	github.com/syndtr/goleveldb	v1.0.1-0.20200815110645-5c35d600f0ca	h1:Ld/zXl5t4+D69SiV4JoN7kkfvJdOWlPpfxrzxpLMoUk=
+	dep	github.com/tailscale/netlink	v1.1.1-0.20240822203006-4d49adab4de7	h1:uFsXVBE9Qr4ZoF094vE6iYTLDl0qCiKzYXlL6UeWObU=
+	dep	github.com/tendermint/tm-db	v0.6.7	h1:fE00Cbl0jayAoqlExN6oyQJ7fR/ZtoVOmvPJ//+shu8=
+	dep	github.com/tidwall/gjson	v1.18.0	h1:FIDeeyB800efLX89e5a8Y0BNH+LOngJyGrIWxG2FKQY=
+	dep	github.com/tidwall/match	v1.1.1	h1:+Ho715JplO36QYgwN9PGYNhgZvoUSc9X2c80KVTi+GA=
+	dep	github.com/tidwall/pretty	v1.2.1	h1:qjsOFOWWQl+N3RsoF5/ssm1pHmJJwhjlSbZ51I6wMl4=
+	dep	github.com/tjfoc/gmsm	v1.4.1	h1:aMe1GlZb+0bLjn+cKTPEvvn9oUEBlJitaZiiBwsbgho=
+	dep	github.com/vishvananda/netns	v0.0.5	h1:DfiHV+j8bA32MFM7bfEunvT8IAqQ/NzSJHtcmW5zdEY=
+	dep	github.com/wader/filtertransport	v0.0.0-20200316221534-bdd9e61eee78	h1:9sreu9e9KOihf2Y0NbpyfWhd1XFDcL4GTkPYL4IvMrg=
+	dep	github.com/wlynxg/anet	v0.0.5	h1:J3VJGi1gvo0JwZ/P1/Yc/8p63SoW98B5dHkYDmpgvvU=
+	dep	github.com/x448/float16	v0.8.4	h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
+	dep	github.com/xmdhs/clash2singbox	v0.1.4	h1:fhyFLve8VR/FtNVTjBLDsxRkzWqhUpaXq4XDdGYqWXM=
+	dep	github.com/xtaci/kcp-go/v5	v5.6.70	h1:AYX0QZl6PqmNj2IdYGZGuBfZuDUkUfl+eHYNijCqaO0=
+	dep	github.com/xtaci/smux	v1.5.24	h1:77emW9dtnOxxOQ5ltR+8BbsX1kzcOxQ5gB+aaV9hXOY=
+	dep	go4.org/netipx	v0.0.0-20231129151722-fdeea329fbba	h1:0b9z3AuHCjxk0x/opv64kcgZLBseWJUpBw5I82+2U4M=
+	dep	golang.org/x/crypto	v0.47.0	h1:V6e3FRj+n4dbpw86FJ8Fv7XVOql7TEwpHapKoMJ/GO8=
+	dep	golang.org/x/exp	v0.0.0-20251219203646-944ab1f22d93	h1:fQsdNF2N+/YewlRZiricy4P1iimyPKZ/xwniHj8Q2a0=
+	dep	golang.org/x/mod	v0.31.0	h1:HaW9xtz0+kOcWKwli0ZXy79Ix+UW/vOfmWI5QVd2tgI=
+	dep	golang.org/x/net	v0.49.0	h1:eeHFmOGUTtaaPSGNmjBKpbng9MulQsJURQUAfUwY++o=
+	dep	golang.org/x/sync	v0.19.0	h1:vV+1eWNmZ5geRlYjzm2adRgW2/mcpevXNg50YZtPCE4=
+	dep	golang.org/x/sys	v0.40.0	h1:DBZZqJ2Rkml6QMQsZywtnjnnGvHza6BTfYFWY9kjEWQ=
+	dep	golang.org/x/text	v0.33.0	h1:B3njUFyqtHDUI5jMn1YIr5B0IE2U0qck04r6d4KPAxE=
+	dep	golang.org/x/time	v0.14.0	h1:MRx4UaLrDotUKUdCIqzPC48t1Y9hANFKIRpNx+Te8PI=
+	dep	golang.zx2c4.com/wireguard	v0.0.0-20231211153847-12269c276173	h1:/jFs0duh4rdb8uIfPMv78iAJGcPKDeqAFnaLBropIC4=
+	dep	golang.zx2c4.com/wireguard/wgctrl	v0.0.0-20241231184526-a9ab2273dd10	h1:3GDAcqdIg1ozBNLgPy4SLT84nfcBjr6rhGtXYtrkWLU=
+	dep	google.golang.org/genproto/googleapis/rpc	v0.0.0-20251029180050-ab9386a59fda	h1:i/Q+bfisr7gq6feoJnS/DlpdwEL4ihp41fvRiM3Ork0=
+	dep	google.golang.org/grpc	v1.78.0	h1:K1XZG/yGDJnzMdd/uZHAkVqJE+xIDOcmdSFZkBUicNc=
+	dep	google.golang.org/protobuf	v1.36.11	h1:fV6ZwhNocDyBLK0dj+fg8ektcVegBBuEolpbTQyBNVE=
+	dep	gopkg.in/yaml.v3	v3.0.1	h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
+	dep	gvisor.dev/gvisor	v0.0.0-20240503213918-b7c924bc64f8	h1:DzvThIeaqCvbufowKcGjJ04qrViggGUg6zEcGFC4i3k=
+	dep	lukechampine.com/blake3	v1.4.1	h1:I3Smz7gso8w4/TunLKec6K2fn+kyKtDxr/xcQEN84Wg=
+	build	-buildmode=c-shared
+	build	-compiler=gc
+	build	-gcflags="all=-N -l"
+	build	-tags=with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_grpc,with_awg,tfogo_checklinkname0,with_naive_outbound,with_conntrack
+	build	-trimpath=true
+	build	CGO_ENABLED=1
+	build	GOARCH=arm64
+	build	GOOS=android
+	build	GOARM64=v8.0
+	build	vcs=git
+	build	vcs.revision=c9d6f0f00b2eda34e4fb71863e4e0a62b3e931a0
+	build	vcs.time=2026-03-05T13:22:39Z
+	build	vcs.modified=true

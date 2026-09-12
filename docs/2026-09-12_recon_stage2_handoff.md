@@ -42,9 +42,15 @@ merger rewrite over measuring background probes. This does not cover all inputs,
 disk IO, core parsing, connection startup, Android CPU or battery. RSS samples include
 the runtime/fixtures and are not a retained-heap or allocation measurement.
 
-## Source/build identity — resolve before core benchmarks
+## Source/build identity — resolved in the follow-up audit
 
-Observed locally, without modifying the Go repositories:
+Follow-up: [core provenance report](2026-09-12_recon_core_provenance.md) now pins
+the release source chain and verifies the official AAR against local AAR/APKs. It
+also identifies `all=-N -l` in the shipped core. The dirty upstream build metadata
+limits clean-source reproducibility; see that report before building. The owner
+will continue diagnostics and tests in Claude.
+
+Initial observations, retained as historical context without modifying Go repositories:
 
 | Item | Value |
 |---|---|
@@ -109,9 +115,11 @@ verification. No new timer, wakelock, or streaming logger was added.
 1. Read the [stage 2 plan](superpowers/plans/2026-09-12-recon-stage2-performance.md)
    and [runner instructions](../tool/performance/README.md). Stay on this branch or
    create the next focused branch from it. Keep meaningful commits per work slice.
-2. Resolve/pin the exact core release and fork build trees in isolated checkouts.
-   Record source commits and AAR hashes. Build the unmodified core first and run its
-   targeted tests; do not optimise against the currently unverified sibling tree.
+2. Source/artifact identification is complete: follow the pinned revisions, hashes
+   and preparation instructions in the [core provenance report](2026-09-12_recon_core_provenance.md).
+   Claude should prepare complete isolated build trees, reproduce the unmodified
+   reference, and evaluate the Go compiler flags separately before changing scheduling.
+   Diagnostics implementation and tests are reserved for Claude.
 3. Add controlled Go tests for scheduling, concurrency, retries and stop/reconnect,
    using fake time/outbounds and locally controlled endpoints. Extend the baseline
    runner with explicitly separate Go scenarios, not simulated substitutes for the
