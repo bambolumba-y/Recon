@@ -114,7 +114,9 @@ class HomePage extends HookConsumerWidget {
                     MultiSliver(
                       children: [
                         // const Gap(100),
-                        if (hasAutoMembers) const SliverToBoxAdapter(child: AutoGroupCard()),
+                        // the card carries the only switch for the mode, so it stays reachable
+                        // while auto mode is on even after the last member left the group
+                        if (hasAutoMembers || autoGroupEnabled) const SliverToBoxAdapter(child: AutoGroupCard()),
                         if (!(hasAutoMembers && autoGroupEnabled))
                           switch (activeProfile) {
                             AsyncData(value: final profile?) => ProfileTile(

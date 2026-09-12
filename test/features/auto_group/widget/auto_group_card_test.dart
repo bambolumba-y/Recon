@@ -72,6 +72,21 @@ void main() {
     expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
   });
 
+  testWidgets('with zero members and auto mode on the card still renders its switch', (tester) async {
+    // the switch is the only control that writes autoGroupEnabled: losing the last member must not
+    // take it away, otherwise auto mode can no longer be turned off (home_page renders the card on
+    // hasAutoMembers || autoGroupEnabled for the same reason)
+    await tester.pumpWidget(card(null, const []));
+    await tester.pump();
+
+    final t = AppLocale.en.buildSync();
+    expect(find.text(t.pages.home.autoGroup.title), findsOneWidget);
+    expect(find.text(t.pages.home.autoGroup.enabled), findsOneWidget);
+    expect(find.text(t.pages.home.autoGroup.subscriptions(count: 0)), findsOneWidget);
+    expect(find.byType(Switch), findsOneWidget);
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+  });
+
   testWidgets('without a build shows the live member count and no servers value', (tester) async {
     await tester.pumpWidget(card(null, [member('a'), member('b')]));
     await tester.pump();

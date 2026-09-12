@@ -139,7 +139,6 @@ class ConnectionRepositoryImpl with ExceptionHandler, InfraLogger implements Con
                 final isAgreed = await ref.read(dialogNotifierProvider.notifier).showWarpLicense();
                 if (isAgreed == true) {
                   await ref.read(warpLicenseNotifierProvider.notifier).agree();
-                  // return (await applyConfigOption(prof).run()).match((l) => throw l, (_) => unit);
                 } else {
                   throw const MissingWarpLicense();
                 }

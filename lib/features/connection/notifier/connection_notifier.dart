@@ -72,6 +72,14 @@ class ConnectionNotifier extends _$ConnectionNotifier with AppLogger {
         // a transient ProfileFailure makes the selector yield null; that is not a membership change
         if (next == null) return;
         if (!ref.read(Preferences.autoGroupEnabled)) return;
+        if (next.isEmpty) {
+          // The last member left the group. Auto mode has nothing left to build, and the card that
+          // owns the switch is the only way out of the mode, so turn it off here. The
+          // autoGroupEnabled listener above then reconnects in manual mode.
+          loggy.info("auto group has no members left, disabling auto mode");
+          await ref.read(Preferences.autoGroupEnabled.notifier).update(false);
+          return;
+        }
         await _reconnectForCurrentMode();
       },
     );
