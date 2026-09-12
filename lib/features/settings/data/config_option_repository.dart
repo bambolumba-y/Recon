@@ -155,7 +155,7 @@ abstract class ConfigOptions {
 
   static final urlTestInterval = PreferencesNotifier.create<Duration, int>(
     "url-test-interval",
-    const Duration(minutes: 10),
+    const Duration(minutes: 30),
     mapFrom: const IntervalInSecondsConverter().fromJson,
     mapTo: const IntervalInSecondsConverter().toJson,
   );

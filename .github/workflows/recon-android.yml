@@ -2,7 +2,7 @@ name: Recon Android
 
 on:
   push:
-    branches: [recon/main]
+    branches: [recon/main, recon/stage2]
   workflow_dispatch:
 
 concurrency:
@@ -27,11 +27,11 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Download prebuilt core
+      - name: Download Recon core
         run: |
-          CORE_VERSION=$(tr -d '\r' < dependencies.properties | sed -n 's/^core.version=//p')
           mkdir -p android/app/libs
-          curl -fL "https://github.com/hiddify/hiddify-core/releases/download/v${CORE_VERSION}/hiddify-lib-android.tar.gz" | tar xz -C android/app/libs/
+          CORE_VERSION=$(tr -d '\r' < dependencies.properties | sed -n 's/^core.version=//p')
+          curl -fL "https://github.com/bambolumba-y/recon-core/releases/download/v${CORE_VERSION}/hiddify-lib-android.tar.gz" | tar xz -C android/app/libs/
           ls -la android/app/libs
 
       - name: Generate code

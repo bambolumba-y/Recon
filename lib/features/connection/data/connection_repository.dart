@@ -103,22 +103,26 @@ class ConnectionRepositoryImpl with ExceptionHandler, InfraLogger implements Con
       );
 
   @override
-  TaskEither<ConnectionFailure, Unit> connectAutoGroup(bool disableMemoryLimit) => setup().flatMap(
-    (_) => applyConfigOption(null).flatMap(
-      (_) => _buildAutoGroup().flatMap(
-        (build) => singbox.start(build.configPath, AutoGroupRepository.displayName, disableMemoryLimit),
-      ),
-    ),
-  );
+  TaskEither<ConnectionFailure, Unit> connectAutoGroup(bool disableMemoryLimit) => setup()
+      .flatMap(
+        (_) => applyConfigOption(null).flatMap(
+          (_) => _buildAutoGroup().flatMap(
+            (build) => singbox.start(build.configPath, AutoGroupRepository.displayName, disableMemoryLimit),
+          ),
+        ),
+      )
+      .flatMap((_) => _selectLowest());
 
   @override
-  TaskEither<ConnectionFailure, Unit> reconnectAutoGroup(bool disableMemoryLimit) => applyConfigOption(null).flatMap(
-    (_) => _buildAutoGroup().flatMap(
-      (build) => singbox
-          .restart(build.configPath, AutoGroupRepository.displayName, disableMemoryLimit)
-          .mapLeft(UnexpectedConnectionFailure.new),
-    ),
-  );
+  TaskEither<ConnectionFailure, Unit> reconnectAutoGroup(bool disableMemoryLimit) => applyConfigOption(null)
+      .flatMap(
+        (_) => _buildAutoGroup().flatMap(
+          (build) => singbox
+              .restart(build.configPath, AutoGroupRepository.displayName, disableMemoryLimit)
+              .mapLeft(UnexpectedConnectionFailure.new),
+        ),
+      )
+      .flatMap((_) => _selectLowest());
 
   TaskEither<ConnectionFailure, AutoGroupBuild> _buildAutoGroup() => autoGroupRepository.buildConfig().mapLeft(
     (failure) => switch (failure) {
@@ -126,6 +130,10 @@ class ConnectionRepositoryImpl with ExceptionHandler, InfraLogger implements Con
       _ => ConnectionFailure.unexpected(failure.message),
     },
   );
+
+  /// Auto mode must run on the core's lowest-delay balancer, not on the selector's default (`balance`).
+  TaskEither<ConnectionFailure, Unit> _selectLowest() =>
+      singbox.selectOutbound('select', 'lowest').mapLeft(ConnectionFailure.unexpected);
 
   @visibleForTesting
   TaskEither<ConnectionFailure, Unit> applyConfigOption(String? profileOverride) =>
