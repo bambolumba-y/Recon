@@ -69,6 +69,8 @@ class ConnectionNotifier extends _$ConnectionNotifier with AppLogger {
       ),
       (previous, next) async {
         if (previous == null || previous == next) return;
+        // a transient ProfileFailure makes the selector yield null; that is not a membership change
+        if (next == null) return;
         if (!ref.read(Preferences.autoGroupEnabled)) return;
         await _reconnectForCurrentMode();
       },
@@ -115,6 +117,8 @@ class ConnectionNotifier extends _$ConnectionNotifier with AppLogger {
 
   Future<void> reconnect(ProfileEntity? profile) async {
     if (state case AsyncData(:final value) when value == const Connected()) {
+      // external callers pass the active profile; in auto mode that profile is not what the core runs on
+      if (ref.read(Preferences.autoGroupEnabled)) return _runAutoReconnect();
       if (profile == null) {
         loggy.info("no active profile, disconnecting");
         return _disconnect();
@@ -157,8 +161,8 @@ class ConnectionNotifier extends _$ConnectionNotifier with AppLogger {
 
   Future<void> _connectThrottled() async {
     if (ref.read(Preferences.autoGroupEnabled)) {
-      await _connectionRepo.connectAutoGroup(ref.read(Preferences.disableMemoryLimit)).mapLeft(_onConnectError).run();
-      _publishAutoGroupBuild();
+      final result = await _connectionRepo.connectAutoGroup(ref.read(Preferences.disableMemoryLimit)).run();
+      await result.match<Future<void>>(_onConnectError, (_) async => _publishAutoGroupBuild());
       return;
     }
     final activeProfile = await ref.read(activeProfileProvider.future);
@@ -188,15 +192,36 @@ class ConnectionNotifier extends _$ConnectionNotifier with AppLogger {
   Future<void> _reconnectForCurrentMode() async {
     if (state case AsyncData(:final value) when value == const Connected()) {
       if (ref.read(Preferences.autoGroupEnabled)) {
-        loggy.info("auto group changed, reconnecting");
-        await _connectionRepo
-            .reconnectAutoGroup(ref.read(Preferences.disableMemoryLimit))
-            .mapLeft(_onReconnectError)
-            .run();
-        _publishAutoGroupBuild();
+        await _runAutoReconnect();
       } else {
         await reconnect(await ref.read(activeProfileProvider.future));
       }
+    }
+  }
+
+  bool _autoReconnecting = false;
+  bool _autoReconnectPending = false;
+
+  /// Single entry point for every auto-mode restart: the mode toggle, the members listener and the delegated
+  /// [reconnect]. The core accepts a restart RPC before the tunnel is up, so the connection state does not serialize
+  /// these calls. A request that arrives while a restart runs is remembered and replayed once afterwards; it is not
+  /// dropped, because it may carry a change the running restart did not read yet (a config option, for instance).
+  Future<void> _runAutoReconnect() async {
+    if (_autoReconnecting) {
+      _autoReconnectPending = true;
+      loggy.debug("auto group reconnect already running, coalescing");
+      return;
+    }
+    _autoReconnecting = true;
+    try {
+      do {
+        _autoReconnectPending = false;
+        loggy.info("auto group changed, reconnecting");
+        final result = await _connectionRepo.reconnectAutoGroup(ref.read(Preferences.disableMemoryLimit)).run();
+        await result.match<Future<void>>(_onReconnectError, (_) async => _publishAutoGroupBuild());
+      } while (_autoReconnectPending);
+    } finally {
+      _autoReconnecting = false;
     }
   }
 
