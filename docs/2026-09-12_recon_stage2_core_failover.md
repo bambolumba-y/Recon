@@ -136,6 +136,7 @@ diag: current=<tag> probes_active=<n> probes_rescue=<n> probes_interface=<n> pro
 |---|---|---|---|
 | `v4.1.0-recon.0` | Эталон: сборка немодифицированных исходников v4.1.0 | `e98b9a1806e2ef049f4bb982b56de92c077c1319ddbd9e39c9a37f44259a4181` | `9523723577208818f6e0e36016d248b4ed760663e130e32e4583b209d15463c2` |
 | `v4.1.0-recon.1` | Ядро этапа 2 (сборка `34691631336`) | `0f441437bed26464c5e76441ab10e11ec63477b0071784dd88a5fe9605f3c5c4` | `e4831003a2bba557ec0107ad6aca50d9d2e9d03d07cba6baaeabb4d905fc56a0` |
+| `v4.1.0-recon.2` | Ядро этапа 2 после fix wave, текущее в `dependencies.properties` (сборка `34695239822`) | `337f3698f83ad627ffa06f8a12490bdab3ee81333dd443834c4c2ccf50476c60` | `7da831df9a7f2f6bfaa37e4bba19a0080692910ea50c8c4d318c1195326b01f1` |
 
 Оба хеша сверены с `SHA256SUMS` соответствующего релиза. Официальный архив
 Hiddify 4.1.0 — `6c4841f7aab23eb1fb17831349ecdfc3ca9c31553b8cbe5effd820cb12607f56`
