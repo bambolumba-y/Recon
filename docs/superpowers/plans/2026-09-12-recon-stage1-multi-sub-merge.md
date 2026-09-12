@@ -49,7 +49,7 @@ Modified files:
 |---|---|
 | `lib/core/http_client/dio_http_client.dart` | `headers` parameter on `get`/`download` |
 | `lib/features/profile/data/profile_parser.dart` | send HWID headers on subscription download |
-| `lib/core/db/db.dart`, `lib/core/db/db.steps.dart`, `lib/core/db/schemas/db/drift_schema_v7.json`, `test/drift/db/generated/*` | schema v7: `include_in_auto` column |
+| `lib/core/db/db.dart`, `lib/core/db/db.steps.dart`, `lib/core/db/schemas/db/drift_schema_v6.json`, `test/drift/db/generated/*` | schema v6: `include_in_auto` column |
 | `lib/features/profile/data/profile_data_source.dart` | `watchAutoGroupMembers()`, `setIncludeInAuto()` |
 | `lib/features/profile/model/profile_entity.dart`, `lib/features/profile/data/profile_data_mapper.dart` | `includeInAuto` field |
 | `lib/features/profile/data/profile_repository.dart` | pass-through methods |
@@ -403,11 +403,11 @@ git commit -m "feat(subscriptions): HWID-заголовки Remnawave при з�
 
 ---
 
-### Task 3: Database column `include_in_auto` (schema v7) and DAO methods
+### Task 3: Database column `include_in_auto` (schema v6) and DAO methods
 
 **Files:**
-- Modify: `lib/core/db/db.dart:17,65-67,79-98`
-- Regenerate: `lib/core/db/db.steps.dart`, `lib/core/db/schemas/db/drift_schema_v7.json`, `test/drift/db/generated/schema.dart`, `test/drift/db/generated/schema_v7.dart`
+- Modify: `lib/core/db/db.dart:17 (schemaVersion), the stepByStep block after from4To5, and the ProfileEntries column list`
+- Regenerate: `lib/core/db/db.steps.dart`, `lib/core/db/schemas/db/drift_schema_v6.json`, `test/drift/db/generated/schema.dart`, `test/drift/db/generated/schema_v6.dart`
 - Modify: `lib/features/profile/data/profile_data_source.dart`
 - Test: `test/drift/db/migration_test.dart` (existing, loops over all versions), `test/features/profile/data/profile_dao_auto_group_test.dart`
 
@@ -486,11 +486,11 @@ Expected: compile error, `includeInAuto` / `watchAutoGroupMembers` undefined.
 In `lib/core/db/db.dart`:
 ```dart
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 6;
 ```
-add after `from5To6`:
+add after `from4To5`:
 ```dart
-        from6To7: (m, schema) async {
+        from5To6: (m, schema) async {
           await m.addColumn(schema.profileEntries, schema.profileEntries.includeInAuto);
         },
 ```
@@ -504,7 +504,7 @@ and in `ProfileEntries` after `userOverride`:
 ```bash
 /c/src/flutter/bin/dart run drift_dev make-migrations
 ```
-`build.yaml` already points `make-migrations` at `lib/core/db/db.dart` with `schema_dir: lib/core/db/schemas`. Expected: new `lib/core/db/schemas/db/drift_schema_v7.json`, updated `lib/core/db/db.steps.dart` containing `from6To7` and `Schema7`, updated `test/drift/db/generated/schema.dart` and new `schema_v7.dart`.
+`build.yaml` already points `make-migrations` at `lib/core/db/db.dart` with `schema_dir: lib/core/db/schemas`. Expected: new `lib/core/db/schemas/db/drift_schema_v6.json`, updated `lib/core/db/db.steps.dart` containing `from5To6` and `Schema6`, updated `test/drift/db/generated/schema.dart` and new `schema_v6.dart`.
 If `make-migrations` is unavailable in the pinned drift_dev, run the three explicit commands instead:
 ```bash
 /c/src/flutter/bin/dart run drift_dev schema dump lib/core/db/db.dart lib/core/db/schemas/db/
@@ -544,14 +544,14 @@ and the implementation inside `ProfileDao`:
 - [ ] **Step 6: Run the DAO test and the migration tests**
 
 Run: `/c/src/flutter/bin/flutter test test/features/profile/data/profile_dao_auto_group_test.dart test/drift/db/migration_test.dart`
-Expected: all pass, including the generated `from 6 -> to 7` case.
+Expected: all pass, including the generated `from 5 -> to 6` case.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 /c/src/flutter/bin/dart format lib test
 git add lib/core/db lib/features/profile/data/profile_data_source.dart test/drift test/features/profile/data/profile_dao_auto_group_test.dart
-git commit -m "feat(db): флаг include_in_auto у подписок, схема v7"
+git commit -m "feat(db): флаг include_in_auto у подписок, схема v6"
 ```
 
 ---
@@ -613,7 +613,7 @@ Expected: compile error, `includeInAuto` is not a named parameter of `ProfileEnt
 
 - [ ] **Step 3: Add the field to the entity**
 
-In `lib/features/profile/model/profile_entity.dart` add `@Default(false) bool includeInAuto,` to both factories:
+In `lib/features/profile/model/profile_entity.dart` add `@Default(false) bool includeInAuto,` to both factories (keep every existing parameter, including `String? profileOverride`, which exists at v4.1.2):
 ```dart
   const factory ProfileEntity.remote({
     required String id,
@@ -624,6 +624,7 @@ In `lib/features/profile/model/profile_entity.dart` add `@Default(false) bool in
     ProfileOptions? options,
     SubscriptionInfo? subInfo,
     Map<String, dynamic>? populatedHeaders,
+    String? profileOverride,
     UserOverride? userOverride,
     @Default(false) bool includeInAuto,
   }) = RemoteProfileEntity;
@@ -634,6 +635,7 @@ In `lib/features/profile/model/profile_entity.dart` add `@Default(false) bool in
     required String name,
     required DateTime lastUpdate,
     Map<String, dynamic>? populatedHeaders,
+    String? profileOverride,
     UserOverride? userOverride,
     @Default(false) bool includeInAuto,
   }) = LocalProfileEntity;
@@ -1475,7 +1477,7 @@ Change `applyConfigOption` to take the override string instead of the entity so 
   TaskEither<ConnectionFailure, Unit> applyConfigOption(String? profileOverride) =>
       TaskEither.fromEither(configOptionRepository.fullOptionsOverrided(profileOverride))
 ```
-and update the two existing callers: `applyConfigOption(activeProfile.profileOverride())` in `connect` and `reconnect`. Everything else inside `applyConfigOption` stays as is.
+and update the two existing callers: `applyConfigOption(activeProfile.profileOverride)` (at v4.1.2 `profileOverride` is a `String?` field on `ProfileEntity`, not a method) in `connect` and `reconnect`. Everything else inside `applyConfigOption` stays as is.
 
 In `lib/features/connection/data/connection_data_providers.dart` add
 `autoGroupRepository: ref.watch(autoGroupRepositoryProvider),` with the import `package:hiddify/features/auto_group/data/auto_group_data_providers.dart`.
@@ -1635,7 +1637,7 @@ In `lib/features/profile/widget/profile_tile.dart` add the import
 In `ProfileActionsMenu.build`, insert before the delete item:
 ```dart
       AdaptiveMenuItem(
-        leadingIcon: Icon(profile.includeInAuto ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded),
+        icon: profile.includeInAuto ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
         title: profile.includeInAuto ? t.pages.profiles.autoGroup.exclude : t.pages.profiles.autoGroup.include,
         onTap: () async =>
             await ref.read(autoGroupNotifierProvider.notifier).toggleMembership(profile.id, !profile.includeInAuto),
@@ -1776,7 +1778,7 @@ read the state at the top of `build`:
     final autoGroupEnabled = ref.watch(Preferences.autoGroupEnabled);
     final hasAutoMembers = (ref.watch(autoGroupMembersProvider).valueOrNull ?? const []).isNotEmpty;
 ```
-and replace the `MultiSliver` children head (lines 103-111) with:
+and replace the `switch (activeProfile) { ... }` block that is the first child of `MultiSliver` (around lines 110-118 at v4.1.2) with:
 ```dart
                         if (hasAutoMembers) const SliverToBoxAdapter(child: AutoGroupCard()),
                         if (!(hasAutoMembers && autoGroupEnabled))
@@ -1814,7 +1816,7 @@ The app is labelled Recon, profile menus show "Include in auto group", the home 
 
 ```bash
 /c/src/flutter/bin/dart format lib test
-git add assets/translations lib/gen lib/features/profile/widget/profile_tile.dart lib/features/auto_group/widget lib/features/home/widget/home_page.dart android/app/src/main/AndroidManifest.xml
+git add assets/translations lib/features/profile/widget/profile_tile.dart lib/features/auto_group/widget lib/features/home/widget/home_page.dart android/app/src/main/AndroidManifest.xml
 git commit -m "feat(ui): карточка автовыбора, отметка подписок, название Recon"
 ```
 
