@@ -189,6 +189,15 @@ timestamp, and rescue duration in ms. Each switch also logs one line:
 `failover: <from> -> <to> reason=<r> took=<ms>ms` so the metric in section 1 can be read
 from sing-box logs.
 
+Delivered for stage 2: the `failover:` line above, plus a `diag:` summary line every
+15 minutes, both readable through the app's existing log export (Logs page, "share
+core logs" action, `box.log`). The gRPC status stream extension described in the
+paragraph above is deferred — it needs protoc and Dart code regeneration, which is
+out of this task's scope — so current/previous tag, the reason enum and rescue
+duration are not yet exposed as structured fields to the app; they exist only in the
+log line. Revisit when the app needs the failover reason in the UI rather than in an
+exported log file.
+
 ### 5.7 Build and delivery
 
 - GitHub Actions in the fork builds `hiddify-sing-box` + `hiddify-core` for Android

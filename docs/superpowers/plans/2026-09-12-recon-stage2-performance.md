@@ -160,3 +160,13 @@ symbols and build/device access before selecting the profiling method.
   preserving the official and source-built references. Upstream dirty-tree metadata
   prevents claiming a reproduced clean build. Owner will continue diagnostics and
   tests in Claude; this audit changes no application/build behaviour.
+
+- 2026-09-12 hand-over: [core failover hand-over](../../2026-09-12_recon_stage2_core_failover.md)
+  records the delivered failover controller in `recon-sing-box` (HEAD `83372f88`),
+  its options pass-through in `recon-core` (HEAD `57def21`), the `failover:`/`diag:`
+  log line formats, the reference vs. stage 2 core AAR hashes (`v4.1.0-recon.0` /
+  `v4.1.0-recon.1`), and the Go scenario results in
+  `docs/performance/2026-09-12-go-scenarios/` (3 scenarios, all passing). Device
+  acceptance with two subscriptions, the ~48 h normal-use observation described in
+  sections 3-4 above, the power bench and the compiler-flags experiment remain open;
+  spec section 5.6's status stream stays deferred in favor of the log line.
