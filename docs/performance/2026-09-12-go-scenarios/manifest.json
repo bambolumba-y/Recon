@@ -1,7 +1,7 @@
 {
   "go_version": "go version go1.25.6 windows/amd64",
-  "singbox_commit": "83372f88008babf6b7ff26e345c46dc657728046",
-  "core_commit": "193a4791c375ce2348d3f4e4d705639822766343",
-  "timestamp_utc": "2026-09-12T11:31:44+00:00",
+  "singbox_commit": "78e381e3d102d5f7ec28f16413e2b77aa938180b",
+  "core_commit": "af820727fcab1daae37aed1237c717808a6146b9",
+  "timestamp_utc": "2026-09-12T13:02:02+00:00",
   "command": "go test ./protocol/group/balancer/ -run 'TestScenario' -v -count=1 -json"
 }
