@@ -47,9 +47,9 @@ class LogRepositoryImpl with ExceptionHandler, InfraLogger implements LogReposit
         } else {
           await logPathResolver.coreFile().create(recursive: true);
         }
-        if (await logPathResolver.appFile().exists()) {
-          await trimLogFile(logPathResolver.appFile(), maxBytes: logMaxBytes, keepBytes: logKeepBytes);
-        } else {
+        // app.log is rewritten by FileLogPrinter at every start, so it only
+        // needs to exist here.
+        if (!await logPathResolver.appFile().exists()) {
           await logPathResolver.appFile().create(recursive: true);
         }
       }

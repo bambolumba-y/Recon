@@ -25,14 +25,11 @@ Future<int> trimLogFile(File file, {required int maxBytes, required int keepByte
   final newlineIndex = tail.indexOf(0x0A);
   final kept = newlineIndex == -1 ? tail : tail.sublist(newlineIndex + 1);
 
-  // Write to a sibling temp file first and rename it over the original, so
-  // a crash mid-write never leaves a truncated log in place.
-  final tempFile = File("${file.path}.tmp");
-  final sink = tempFile.openWrite(mode: FileMode.writeOnly);
-  sink.add(kept);
-  await sink.flush();
-  await sink.close();
-  await tempFile.rename(file.path);
+  // Rewrite in place rather than rename a new file over the old one: the core
+  // process keeps box.log open with O_APPEND, and a rename would leave it
+  // writing to the unlinked inode until the next VPN start. After an in-place
+  // truncate its next write lands after the kept tail.
+  await file.writeAsBytes(kept, mode: FileMode.writeOnly, flush: true);
 
   return length - kept.length;
 }
